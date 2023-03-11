@@ -1,11 +1,52 @@
 pub mod werewolf {
+    use bimap::BiHashMap;
+    use rand::distributions::{Alphanumeric, DistString};
     use serde::{Deserialize, Serialize};
-    use std::{fmt::Display, ops::AddAssign};
+    use std::{collections::HashSet, ops::AddAssign};
+    use thiserror::Error;
+
+    /// エラー一覧
+    #[derive(Error, Debug)]
+    pub enum Error {
+        #[error("this username is already in use.")]
+        UserAlreadyRegistered,
+        #[error("unauthorized.")]
+        Unauthorized,
+    }
 
     /// 送受信されるリクエスト
     pub trait Request: Serialize + for<'a> Deserialize<'a> {
         /// Stateを更新する。
         fn update(&self, state: &mut State);
+    }
+
+    /// トークン
+    pub type Token = String;
+    /// Token文字列の長さ
+    pub const TOKEN_LENGTH: usize = 32;
+
+    /// IDとして使用する表示名
+    pub type Name = String;
+
+    /// ゲームマスター
+    #[derive(Default)]
+    pub struct Master {
+        /// 状態
+        state: State,
+        /// トークンから表示名への辞書
+        tokens: BiHashMap<Token, Name>,
+    }
+
+    impl Master {
+        /// ユーザーを登録する
+        pub fn register(&mut self, name: Name) -> Result<Token, Error> {
+            if self.tokens.contains_right(&name) {
+                return Err(Error::UserAlreadyRegistered);
+            }
+            let token: Token = Alphanumeric.sample_string(&mut rand::thread_rng(), TOKEN_LENGTH);
+            self.tokens.insert(token.clone(), name);
+            Ok(token)
+        }
     }
 
     /// ゲームの状態
@@ -16,6 +57,8 @@ pub mod werewolf {
         count: u64,
         /// 現在のフェーズ
         phase: Phase,
+        /// メンバー一覧
+        members: HashSet<Name>,
     }
 
     // 初期化
@@ -24,6 +67,7 @@ pub mod werewolf {
             State {
                 count: 0,
                 phase: Phase::Waiting,
+                members: HashSet::new(),
             }
         }
     }

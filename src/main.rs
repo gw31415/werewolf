@@ -2,7 +2,7 @@ pub mod werewolf {
     use bimap::BiHashMap;
     use rand::distributions::{Alphanumeric, DistString};
     use serde::{Deserialize, Serialize};
-    use std::{collections::HashSet, ops::AddAssign};
+    use std::collections::HashSet;
     use thiserror::Error;
 
     /// エラー一覧
@@ -69,13 +69,6 @@ pub mod werewolf {
                 phase: Phase::Waiting,
                 members: HashSet::new(),
             }
-        }
-    }
-
-    // 状態の更新
-    impl<T: Request> AddAssign<T> for State {
-        fn add_assign(&mut self, rhs: T) {
-            rhs.update(self);
         }
     }
 

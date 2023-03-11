@@ -8,8 +8,8 @@ pub mod werewolf {
     /// エラー一覧
     #[derive(Error, Debug)]
     pub enum Error {
-        #[error("this username is already in use.")]
-        UserAlreadyRegistered,
+        #[error("display name of `{0}` is already in use.")]
+        NameAlreadyRegistered(String),
         #[error("unauthorized.")]
         Unauthorized,
     }
@@ -41,7 +41,7 @@ pub mod werewolf {
         /// ユーザーを登録する
         pub fn register(&mut self, name: Name) -> Result<Token, Error> {
             if self.tokens.contains_right(&name) {
-                return Err(Error::UserAlreadyRegistered);
+                return Err(Error::NameAlreadyRegistered(name));
             }
             let token: Token = Alphanumeric.sample_string(&mut rand::thread_rng(), TOKEN_LENGTH);
             self.tokens.insert(token.clone(), name);

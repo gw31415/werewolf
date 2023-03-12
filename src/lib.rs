@@ -6,10 +6,7 @@ mod state;
 pub use error::Error;
 pub use request::Request;
 pub use role::{Role, Team};
-pub use state::{State, Phase};
-
-/// IDとして使用する表示名
-pub type Name = String;
+pub use state::{Name, Phase, State};
 
 use bimap::BiHashMap;
 use rand::distributions::{Alphanumeric, DistString};
@@ -46,7 +43,7 @@ impl Master {
     pub fn apply(&mut self, token: Token, req: Request) -> Result<HashSet<Name>, Error> {
         let Some(name) = self.tokens.get_by_left(&token) else { return Err(Error::Unauthorized) };
         req.apply_to(&mut self.state, name)?;
-        let mut updated_list = HashSet::new();
+        let mut updated_list = HashSet::new(); // 更新があるユーザーの名称を保持する。
         for name in self.tokens.right_values() {
             let next_state = self.state.mask_for(name);
             // ユーザー毎の状態を更新し、実際に更新されたユーザー名のリストを作成する。

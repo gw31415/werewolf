@@ -1,5 +1,5 @@
+use super::{Error, Name, State};
 use serde::{Deserialize, Serialize};
-use super::{State, Name, Error};
 
 /// 送受信されるリクエスト
 #[derive(Serialize, Deserialize)]

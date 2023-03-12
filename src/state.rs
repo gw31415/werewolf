@@ -1,8 +1,10 @@
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
-use super::Name;
 use crate::{Role, Team};
+
+/// IDとして使用する表示名
+pub type Name = String;
 
 /// ゲームの状態
 #[derive(Serialize, Deserialize, PartialEq, Clone)]

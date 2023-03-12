@@ -10,7 +10,7 @@ pub use state::{Name, Phase, State};
 
 use bimap::BiHashMap;
 use rand::distributions::{Alphanumeric, DistString};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 /// トークン
 pub type Token = String;
@@ -28,7 +28,7 @@ pub struct Master {
     client_states: HashMap<Name, State>,
 }
 
-impl Master {
+impl<'master> Master {
     /// ユーザーを登録する
     pub fn register(&mut self, name: Name) -> Result<Token, Error> {
         if self.tokens.contains_right(&name) {
@@ -40,19 +40,24 @@ impl Master {
     }
     /// リクエストを適用する。
     /// 更新があるユーザーのリストを返却する。
-    pub fn apply(&mut self, token: Token, req: Request) -> Result<HashSet<Name>, Error> {
+    pub fn apply(
+        &'master mut self,
+        token: Token,
+        req: Request,
+    ) -> Result<Vec<(&'master Name, State)>, Error> {
         let Some(name) = self.tokens.get_by_left(&token) else { return Err(Error::Unauthorized) };
         req.apply_to(&mut self.state, name)?;
-        let mut updated_list = HashSet::new(); // 更新があるユーザーの名称を保持する。
+        let mut updated_list = Vec::new(); // 更新があるユーザーの名称を保持する。
         for name in self.tokens.right_values() {
             let next_state = self.state.mask_for(name);
             // ユーザー毎の状態を更新し、実際に更新されたユーザー名のリストを作成する。
             if self
                 .client_states
                 .insert(name.to_owned(), next_state.clone())
-                != Some(next_state)
+                .as_ref()
+                != Some(&next_state)
             {
-                updated_list.insert(name.clone());
+                updated_list.push((name, next_state));
             }
         }
         Ok(updated_list)

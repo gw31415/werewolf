@@ -20,6 +20,10 @@ pub mod werewolf {
         fn apply(&self, sender: &Name, state: &mut State) -> Result<(), Error>;
     }
 
+    /// 役職
+    #[derive(Serialize, Deserialize, PartialEq, Clone)]
+    pub enum Role {}
+
     /// トークン
     pub type Token = String;
     /// Token文字列の長さ
@@ -79,6 +83,8 @@ pub mod werewolf {
         phase: Phase,
         /// メンバー一覧
         members: HashSet<Name>,
+        /// 役職のマップ
+        role: HashMap<Name, Role>,
     }
 
     impl State {
@@ -95,6 +101,7 @@ pub mod werewolf {
                 count: 0,
                 phase: Phase::Waiting,
                 members: HashSet::new(),
+                role: HashMap::new(),
             }
         }
     }

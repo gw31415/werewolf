@@ -1,8 +1,12 @@
+pub mod request;
+
 use bimap::BiHashMap;
 use rand::distributions::{Alphanumeric, DistString};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use thiserror::Error;
+
+pub use request::Request;
 
 /// エラー一覧
 #[derive(Error, Debug)]
@@ -11,16 +15,6 @@ pub enum Error {
     NameAlreadyRegistered(String),
     #[error("unauthorized.")]
     Unauthorized,
-}
-
-/// 送受信されるリクエスト
-#[derive(Serialize, Deserialize)]
-pub enum Request {}
-impl Request {
-    /// Stateを更新する。
-    fn apply_to(&self, state: &mut State, sender: &Name) -> Result<(), Error> {
-        todo!()
-    }
 }
 
 /// 役職

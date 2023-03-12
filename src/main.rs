@@ -15,9 +15,13 @@ pub mod werewolf {
     }
 
     /// 送受信されるリクエスト
-    pub trait Request: Serialize + for<'a> Deserialize<'a> {
+    #[derive(Serialize, Deserialize)]
+    pub enum Request {}
+    impl Request {
         /// Stateを更新する。
-        fn apply(&self, sender: &Name, state: &mut State) -> Result<(), Error>;
+        fn apply_to(&self, state: &mut State, sender: &Name) -> Result<(), Error> {
+            todo!()
+        }
     }
 
     /// 役職
@@ -53,10 +57,11 @@ pub mod werewolf {
             self.tokens.insert(token.clone(), name);
             Ok(token)
         }
-        /// リクエストを適用する
-        pub fn apply(&mut self, token: Token, req: impl Request) -> Result<HashSet<Name>, Error> {
+        /// リクエストを適用する。
+        /// 更新があるユーザーのリストを返却する。
+        pub fn apply(&mut self, token: Token, req: Request) -> Result<HashSet<Name>, Error> {
             let Some(name) = self.tokens.get_by_left(&token) else { return Err(Error::Unauthorized) };
-            req.apply(name, &mut self.state)?;
+            req.apply_to(&mut self.state, name)?;
             let mut updated_list = HashSet::new();
             for name in self.tokens.right_values() {
                 let next_state = self.state.mask_for(name);

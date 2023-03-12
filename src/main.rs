@@ -2,7 +2,7 @@ pub mod werewolf {
     use bimap::BiHashMap;
     use rand::distributions::{Alphanumeric, DistString};
     use serde::{Deserialize, Serialize};
-    use std::collections::HashSet;
+    use std::collections::{HashMap, HashSet};
     use thiserror::Error;
 
     /// エラー一覧
@@ -17,7 +17,7 @@ pub mod werewolf {
     /// 送受信されるリクエスト
     pub trait Request: Serialize + for<'a> Deserialize<'a> {
         /// Stateを更新する。
-        fn update(&self, state: &mut State);
+        fn apply(&self, sender: &Name, state: &mut State) -> Result<(), Error>;
     }
 
     /// トークン
@@ -35,6 +35,8 @@ pub mod werewolf {
         state: State,
         /// トークンから表示名への辞書
         tokens: BiHashMap<Token, Name>,
+        /// 各ユーザーが閲覧している状態(マスク&変換済みのもの)
+        client_states: HashMap<Name, State>,
     }
 
     impl Master {
@@ -47,10 +49,28 @@ pub mod werewolf {
             self.tokens.insert(token.clone(), name);
             Ok(token)
         }
+        /// リクエストを適用する
+        pub fn apply(&mut self, token: Token, req: impl Request) -> Result<HashSet<Name>, Error> {
+            let Some(name) = self.tokens.get_by_left(&token) else { return Err(Error::Unauthorized) };
+            req.apply(name, &mut self.state)?;
+            let mut updated_list = HashSet::new();
+            for name in self.tokens.right_values() {
+                let next_state = self.state.mask_for(name);
+                // ユーザー毎の状態を更新し、実際に更新されたユーザー名のリストを作成する。
+                if self
+                    .client_states
+                    .insert(name.to_owned(), next_state.clone())
+                    != Some(next_state)
+                {
+                    updated_list.insert(name.clone());
+                }
+            }
+            Ok(updated_list)
+        }
     }
 
     /// ゲームの状態
-    #[derive(Serialize, Deserialize)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone)]
     pub struct State {
         /// 何周目かを表す整数値。
         /// ゲーム開始前は0で、夜がくる度に+1される。
@@ -59,6 +79,13 @@ pub mod werewolf {
         phase: Phase,
         /// メンバー一覧
         members: HashSet<Name>,
+    }
+
+    impl State {
+        /// stateを各ユーザーの権限に基づいてマスク・変換する
+        fn mask_for(&self, name: &str) -> Self {
+            todo!()
+        }
     }
 
     // 初期化
@@ -73,7 +100,7 @@ pub mod werewolf {
     }
 
     /// フェーズ
-    #[derive(Serialize, Deserialize)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone)]
     pub enum Phase {
         /// メンバー募集中
         Waiting,
@@ -86,7 +113,7 @@ pub mod werewolf {
     }
 
     /// 陣営
-    #[derive(Serialize, Deserialize)]
+    #[derive(Serialize, Deserialize, PartialEq, Clone)]
     pub enum Team {
         /// 市民
         Citizen,

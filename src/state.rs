@@ -11,13 +11,15 @@ pub type Name = String;
 pub struct State {
     /// 何周目かを表す整数値。
     /// ゲーム開始前は0で、夜がくる度に+1される。
-    count: u64,
+    pub count: u64,
     /// 現在のフェーズ
-    phase: Phase,
+    pub phase: Phase,
     /// メンバー一覧
-    members: HashSet<Name>,
+    pub members: HashSet<Name>,
     /// 役職のマップ
-    role: HashMap<Name, Role>,
+    pub role: HashMap<Name, Role>,
+    /// 生存者
+    pub survivors: HashSet<Name>,
 }
 
 impl State {

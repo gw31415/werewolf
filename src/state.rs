@@ -41,20 +41,26 @@ impl Default for State {
             count: 0,
             phase: Phase::Waiting,
             members: HashSet::new(),
+            survivors: HashSet::new(),
             role: HashMap::new(),
         }
     }
 }
 
 /// フェーズ
-#[derive(Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
 pub enum Phase {
     /// メンバー募集中
     Waiting,
     /// 夜
     Night,
     /// 昼
-    Day,
+    Day {
+        /// 投票
+        votes: HashMap<Name, Name>,
+        /// 追放の候補者
+        candidates: HashSet<Name>,
+    },
     /// 終了
     End(Team),
 }

@@ -19,8 +19,8 @@ impl Role {
 /// 陣営
 #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
 pub enum Team {
-    /// 市民
+    /// 市民陣営
     Citizen,
-    /// 人狼
+    /// 人狼陣営
     Wolf,
 }

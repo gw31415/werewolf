@@ -27,6 +27,11 @@ impl State {
     pub fn mask_for(&self, name: &str) -> Self {
         todo!()
     }
+    /// 勝敗を確認する。終了した場合はPhaseをEndにし、trueを返す。
+    /// 終了しなかった場合はfalseを返す。
+    pub fn judge(&mut self) -> bool {
+        todo!();
+    }
 }
 
 // 初期化

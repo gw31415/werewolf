@@ -29,7 +29,7 @@ impl State {
     }
     /// 勝敗を確認する。終了した場合はPhaseをEndにし、trueを返す。
     /// 終了しなかった場合はfalseを返す。
-    pub fn judge(&mut self) -> bool {
+    pub(crate) fn judge(&mut self) -> bool {
         let State {
             ref survivors,
             ref role,

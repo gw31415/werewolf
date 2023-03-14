@@ -23,8 +23,8 @@ pub struct State {
 }
 
 impl State {
-    /// stateを各ユーザーの権限に基づいてマスク・変換する
-    pub fn mask_for(&self, name: &str) -> Self {
+    /// stateを各ユーザーの権限に基づいてマスク・変換したものを作成する。
+    pub fn create_masked_for(&self, name: &str) -> Self {
         todo!()
     }
     /// 勝敗を確認する。終了した場合はPhaseをEndにし、trueを返す。

@@ -55,7 +55,7 @@ impl<'master> Master {
         req.apply_to(&mut self.state, name)?;
         let mut updated_list = Vec::new(); // 更新があるユーザーの名称を保持する。
         for name in self.tokens.right_values() {
-            let next_state = self.state.mask_for(name);
+            let next_state = self.state.create_masked_for(name);
             // ユーザー毎の状態を更新し、実際に更新されたユーザー名のリストを作成する。
             if self
                 .client_states

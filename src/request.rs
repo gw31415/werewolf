@@ -53,7 +53,7 @@ impl<'state> Request {
         match self {
             Self::Vote(vote_to) => {
                 // 日中に限る
-                assert_phase!(Phase::Day { ref mut votes, ref mut candidates });
+                assert_phase!(Phase::Day { ref mut votes, ref mut candidates, count });
                 // 生存者に限る
                 assert_survive!();
 
@@ -91,14 +91,14 @@ impl<'state> Request {
                     // 勝敗確認
                     if !state.judge() {
                         // 勝敗が決まらなかった場合
-                        state.phase = Phase::Night;
+                        state.phase = Phase::Night { count: count + 1 };
                     }
                 };
                 Ok(())
             }
             Request::Kill(name) => {
                 // 夜間に限る
-                assert_phase!(Phase::Night);
+                assert_phase!(Phase::Night { .. });
                 // 人狼に限る
                 assert_role!(Role::Wolf);
                 // ユーザーが生存しているか確認する

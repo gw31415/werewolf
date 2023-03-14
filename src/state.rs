@@ -9,9 +9,6 @@ pub type Name = String;
 /// ゲームの状態
 #[derive(Serialize, Deserialize, PartialEq, Clone)]
 pub struct State {
-    /// 何周目かを表す整数値。
-    /// ゲーム開始前は0で、夜がくる度に+1される。
-    pub count: u64,
     /// 現在のフェーズ
     pub phase: Phase,
     /// メンバー一覧
@@ -84,7 +81,6 @@ impl State {
 impl Default for State {
     fn default() -> Self {
         State {
-            count: 0,
             phase: Phase::Waiting,
             members: HashSet::new(),
             survivors: HashSet::new(),
@@ -99,9 +95,14 @@ pub enum Phase {
     /// メンバー募集中
     Waiting,
     /// 夜
-    Night,
+    Night {
+        /// 何回目の夜であるか
+        count: usize,
+    },
     /// 昼
     Day {
+        /// 何回目の昼であるか
+        count: usize,
         /// 投票
         votes: HashMap<Name, Name>,
         /// 追放の候補者

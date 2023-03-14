@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 pub enum Role {
     /// 市民
     Citizen,
+    /// 人狼
+    Wolf,
 }
 
 impl Role {
@@ -12,6 +14,7 @@ impl Role {
     pub fn team(&self) -> Team {
         match self {
             Self::Citizen => Team::Citizen,
+            Self::Wolf => Team::Wolf,
         }
     }
 }

@@ -98,6 +98,7 @@ pub enum Phase {
     Night {
         /// 何回目の夜であるか
         count: usize,
+        waiting: HashSet<Name>,
     },
     /// 昼
     Day {

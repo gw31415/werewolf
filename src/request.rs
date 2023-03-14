@@ -8,7 +8,7 @@ use crate::{Error, Name, Phase, Role, State};
 pub enum Request {
     /// 投票: 生存者・日中・候補者(独自変数)
     Vote(Name),
-    /// 殺害: 役職[人狼]・夜間・ターゲット[生存者]
+    /// 殺害: 役職[人狼]・夜間・ターゲット[生存者]・夜間1回のみ
     Kill(Name),
 }
 impl<'state> Request {
@@ -50,10 +50,13 @@ impl<'state> Request {
             };
         }
 
+        // リクエスト固有の処理を行う。
+        // Phaseの変更はリクエストに依存しないものが多いので、
+        // そういうものは後のmatch移譲する。
         match self {
             Self::Vote(vote_to) => {
                 // 日中に限る
-                assert_phase!(Phase::Day { ref mut votes, ref mut candidates, count });
+                assert_phase!(Phase::Day { ref mut votes, ref mut candidates, .. });
                 // 生存者に限る
                 assert_survive!();
 
@@ -88,26 +91,53 @@ impl<'state> Request {
                     }
                     let exiled_player = candidates.iter().next().unwrap(); // 追放される人
                     state.survivors.remove(exiled_player);
-                    // 勝敗確認
-                    if !state.judge() {
-                        // 勝敗が決まらなかった場合
-                        state.phase = Phase::Night { count: count + 1 };
-                    }
                 };
-                Ok(())
             }
             Request::Kill(name) => {
                 // 夜間に限る
-                assert_phase!(Phase::Night { .. });
+                assert_phase!(Phase::Night{ ref mut waiting, .. });
                 // 人狼に限る
                 assert_role!(Role::Wolf);
                 // ユーザーが生存しているか確認する
                 assert_survive!();
                 // ターゲットが生存しているか確認する
                 assert_survive!(name);
+                // 行動済みの場合はエラー
+                if !waiting.contains(sender) {
+                    return Err(Error::MultipleActions);
+                }
                 state.survivors.remove(name);
-                Ok(())
+                // タスク終了の通知
+                waiting.remove(sender);
             }
         }
+
+        // Phaseの推移
+        match state.phase.clone() {
+            Phase::Night { count, waiting } => {
+                if waiting.is_empty() {
+                    // 行動待ちがいない場合
+                    if !state.judge() {
+                        // 勝敗確認
+                        state.phase = Phase::Day {
+                            count,
+                            votes: HashMap::new(),
+                            candidates: state.survivors.clone(),
+                        }
+                    }
+                }
+            }
+            Phase::Day { count, .. } => {
+                if !state.judge() {
+                    // 勝敗が決まらなかった場合
+                    state.phase = Phase::Night {
+                        count: count + 1,
+                        waiting: state.survivors.clone(),
+                    };
+                }
+            }
+            Phase::Waiting | Phase::End(_) => {}
+        }
+        Ok(())
     }
 }

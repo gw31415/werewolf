@@ -20,4 +20,6 @@ pub enum Error {
     CannotVoteToThisPlayer(String),
     #[error("this request is allowed only survivors.")]
     SurvivorsOnly,
+    #[error("cannot act more than once")]
+    MultipleActions,
 }

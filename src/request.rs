@@ -1,13 +1,15 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::{Error, Name, Phase, State};
+use crate::{Error, Name, Phase, Role, State};
 
 /// 送受信されるリクエスト
 #[derive(Serialize, Deserialize)]
 pub enum Request {
-    /// 投票: 生存者・日中
+    /// 投票: 生存者・日中・候補者(独自変数)
     Vote(Name),
+    /// 殺害: 役職[人狼]・夜間・ターゲット[生存者]
+    Kill(Name),
 }
 impl<'state> Request {
     /// Stateを更新する。
@@ -22,8 +24,25 @@ impl<'state> Request {
                 };
             };
         }
-        /// 生存者に限るリクエストである
-        macro_rules! survivors_only {
+        /// 役職の確認をする
+        macro_rules! assert_role {
+            ($expected:pat) => {
+                let $expected = state.role.get(sender).unwrap() else {
+                    return Err(Error::InvalidPhase {
+                        found: state.phase.to_owned(), expected: stringify!($expected).to_string(),
+                    });
+                };
+            };
+        }
+        /// 生存者の確認をする。
+        /// 生存確認が本人に対するものであるならば引数を省略する
+        macro_rules! assert_survive {
+            ($name: expr) => {
+                if !state.survivors.contains($name) {
+                    // 指定された名前が候補者に含まれていない場合。
+                    return Err(Error::TargedExiledOrKilled($name.to_owned()));
+                }
+            };
             () => {
                 if !state.survivors.contains(sender) {
                     return Err(Error::SurvivorsOnly);
@@ -36,7 +55,7 @@ impl<'state> Request {
                 // 日中に限る
                 assert_phase!(Phase::Day { ref mut votes, ref mut candidates });
                 // 生存者に限る
-                survivors_only!();
+                assert_survive!();
 
                 if !candidates.contains(vote_to) {
                     // 指定された名前が候補者に含まれていない場合。
@@ -75,6 +94,18 @@ impl<'state> Request {
                         state.phase = Phase::Night;
                     }
                 };
+                Ok(())
+            }
+            Request::Kill(name) => {
+                // 夜間に限る
+                assert_phase!(Phase::Night);
+                // 人狼に限る
+                assert_role!(Role::Wolf);
+                // ユーザーが生存しているか確認する
+                assert_survive!();
+                // ターゲットが生存しているか確認する
+                assert_survive!(name);
+                state.survivors.remove(name);
                 Ok(())
             }
         }

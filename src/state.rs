@@ -22,7 +22,15 @@ pub struct State {
 impl State {
     /// stateを各ユーザーの権限に基づいてマスク・変換したものを作成する。
     pub fn create_masked_for(&self, name: &str) -> Self {
-        todo!()
+        let mut output = self.clone();
+        // 他プレイヤーの情報を外す
+        for another_member in self.members.iter() {
+            if another_member == name {
+                continue;
+            }
+            output.role.remove(another_member);
+        }
+        output
     }
     /// 勝敗を確認する。終了した場合はPhaseをEndにし、trueを返す。
     /// 終了しなかった場合はfalseを返す。
@@ -60,7 +68,7 @@ impl State {
                 if check_wolf_win_after_increment(survivor) {
                     return true;
                 }
-                if let Role::Wolf = self.role.get(survivor).unwrap() {
+                if let Role::Wolf(_) = self.role.get(survivor).unwrap() {
                     break 'wolf_presence_check;
                 }
             }

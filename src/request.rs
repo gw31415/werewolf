@@ -73,7 +73,7 @@ impl<'state> Request {
                 // 夜間に限る
                 assert_phase!(Phase::Night{ ref mut waiting, .. });
                 // 人狼に限る
-                assert_role!(Role::Wolf);
+                assert_role!(Role::Wolf(ref mut option));
                 // ユーザーが生存しているか確認する
                 assert_survive!();
                 // ターゲットが生存しているか確認する
@@ -82,7 +82,7 @@ impl<'state> Request {
                 if !waiting.contains(sender) {
                     return Err(Error::MultipleActions);
                 }
-                state.survivors.remove(name);
+                *option = Some(name.to_owned());
                 // タスク終了の通知
                 waiting.remove(sender);
             }
@@ -98,7 +98,7 @@ impl<'state> Request {
                     return Err(Error::MultipleActions);
                 }
                 // ターゲットが人狼か否か
-                let target_is_wolf = matches!(state.role.get(name).unwrap(), Role::Wolf);
+                let target_is_wolf = matches!(state.role.get(name).unwrap(), Role::Wolf(_));
                 // 占い師に限る
                 assert_role!(Role::Seer(ref mut expected));
                 // 既に占っていた場合はエラー
@@ -116,6 +116,23 @@ impl<'state> Request {
             Phase::Night { count, waiting } => {
                 if waiting.is_empty() {
                     // 行動待ちがいない場合
+                    // 夜のうちにキューされた殺害リストを適用する
+                    let mut kill_list: Vec<&String> = Vec::new();
+                    for survivor in state.survivors.iter() {
+                        if let Role::Wolf(Some(target)) = state.role.get(survivor).unwrap() {
+                            kill_list.push(target);
+                        }
+                    }
+                    for name in kill_list {
+                        state.survivors.remove(name);
+                    }
+                    for survivor in state.survivors.iter() {
+                        if let Role::Wolf(option) = state.role.get_mut(survivor).unwrap() {
+                            if option.is_some() {
+                                *option = None;
+                            }
+                        }
+                    }
                     if !state.judge() {
                         // 勝敗確認
                         state.phase = Phase::Day {

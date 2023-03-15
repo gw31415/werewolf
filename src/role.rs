@@ -1,4 +1,8 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
+
+use crate::Name;
 
 /// 役職
 #[derive(Serialize, Deserialize, PartialEq, Clone)]
@@ -7,6 +11,8 @@ pub enum Role {
     Citizen,
     /// 人狼
     Wolf,
+    /// 占い師
+    Seer(HashMap<Name, bool>),
 }
 
 impl Role {
@@ -14,6 +20,7 @@ impl Role {
     pub fn team(&self) -> Team {
         match self {
             Self::Citizen => Team::Citizen,
+            Self::Seer(_) => Team::Citizen,
             Self::Wolf => Team::Wolf,
         }
     }

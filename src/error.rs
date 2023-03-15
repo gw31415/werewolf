@@ -14,10 +14,8 @@ pub enum Error {
         found: Phase,
         expected: String,
     },
-    #[error("target: {0} has been exiled or killed.")]
-    TargedExiledOrKilled(String),
-    #[error("you cannot vote to the player named: {0}.")]
-    CannotVoteToThisPlayer(String),
+    #[error("you cannot request about `{0}`.")]
+    InvalidTarget(String),
     #[error("this request is allowed only survivors.")]
     SurvivorsOnly,
     #[error("cannot act more than once")]

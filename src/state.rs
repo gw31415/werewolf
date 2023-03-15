@@ -34,15 +34,16 @@ impl State {
             ..
         } = self;
 
-        // 役職の数を数える
+        // 陣営の数を数える
         let mut iter = survivors.iter();
         let (mut wolf_count, mut citizen_count) = (0usize, 0usize);
         let mut check_wolf_win_after_increment = |survivor: &Name| {
-            match role.get(survivor).unwrap() {
-                Role::Wolf => {
+            let role = role.get(survivor).unwrap();
+            match role.team() {
+                Team::Wolf => {
                     wolf_count += 1;
                 }
-                Role::Citizen => {
+                Team::Citizen => {
                     citizen_count += 1;
                 }
             }

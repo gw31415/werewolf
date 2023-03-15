@@ -10,6 +10,8 @@ pub enum Request {
     Vote(Name),
     /// 殺害: 役職[人狼]・夜間・ターゲット[生存者]・夜間1回のみ
     Kill(Name),
+    /// 占い: 役職[占い師]・夜間・ターゲット[生存者、占っていない人]・夜間1回のみ
+    Divine(Name),
 }
 impl<'state> Request {
     /// Stateを更新する。
@@ -27,7 +29,7 @@ impl<'state> Request {
         /// 役職の確認をする
         macro_rules! assert_role {
             ($expected:pat) => {
-                let $expected = state.role.get(sender).unwrap() else {
+                let $expected = state.role.get_mut(sender).unwrap() else {
                     return Err(Error::InvalidPhase {
                         found: state.phase.to_owned(), expected: stringify!($expected).to_string(),
                     });
@@ -40,7 +42,7 @@ impl<'state> Request {
             ($name: expr) => {
                 if !state.survivors.contains($name) {
                     // 指定された名前が候補者に含まれていない場合。
-                    return Err(Error::TargedExiledOrKilled($name.to_owned()));
+                    return Err(Error::InvalidTarget($name.to_owned()));
                 }
             };
             () => {
@@ -62,7 +64,7 @@ impl<'state> Request {
 
                 if !candidates.contains(vote_to) {
                     // 指定された名前が候補者に含まれていない場合。
-                    return Err(Error::CannotVoteToThisPlayer(vote_to.to_owned()));
+                    return Err(Error::InvalidTarget(vote_to.to_owned()));
                 }
                 // 投票リストの更新
                 votes.insert(sender.to_owned(), vote_to.to_owned());
@@ -81,6 +83,29 @@ impl<'state> Request {
                     return Err(Error::MultipleActions);
                 }
                 state.survivors.remove(name);
+                // タスク終了の通知
+                waiting.remove(sender);
+            }
+            Request::Divine(name) => {
+                // 夜間に限る
+                assert_phase!(Phase::Night{ ref mut waiting, .. });
+                // ユーザーが生存しているか確認する
+                assert_survive!();
+                // ターゲットが生存しているか確認する
+                assert_survive!(name);
+                // 行動済みの場合はエラー
+                if !waiting.contains(sender) {
+                    return Err(Error::MultipleActions);
+                }
+                // ターゲットが人狼か否か
+                let target_is_wolf = matches!(state.role.get(name).unwrap(), Role::Wolf);
+                // 占い師に限る
+                assert_role!(Role::Seer(ref mut expected));
+                // 既に占っていた場合はエラー
+                if expected.contains_key(name) {
+                    return Err(Error::InvalidTarget(name.to_owned()));
+                }
+                expected.insert(name.to_owned(), target_is_wolf);
                 // タスク終了の通知
                 waiting.remove(sender);
             }

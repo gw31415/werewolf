@@ -66,32 +66,6 @@ impl<'state> Request {
                 }
                 // 投票リストの更新
                 votes.insert(sender.to_owned(), vote_to.to_owned());
-                if votes.len() == state.survivors.len() {
-                    // 全員投票が終わったら
-                    // 投票の集計
-                    let mut max = 0; // 最大の得票数
-                    candidates.clear(); // 最大得票の候補者を洗いだす
-                    let mut votes_count = HashMap::new(); // 得票数
-                    for candidate in votes.values() {
-                        let counter = votes_count.entry(candidate).or_insert(0);
-                        *counter += 1;
-                        if max <= *counter {
-                            if max < *counter {
-                                max = *counter;
-                                candidates.clear();
-                            }
-                            candidates.insert(candidate.to_owned());
-                        }
-                    }
-                    if candidates.len() != 1 {
-                        // 追放者が決まらなかった場合
-                        // 決戦投票
-                        votes.clear();
-                        return Ok(());
-                    }
-                    let exiled_player = candidates.iter().next().unwrap(); // 追放される人
-                    state.survivors.remove(exiled_player);
-                };
             }
             Request::Kill(name) => {
                 // 夜間に限る
@@ -127,13 +101,43 @@ impl<'state> Request {
                     }
                 }
             }
-            Phase::Day { count, .. } => {
-                if !state.judge() {
-                    // 勝敗が決まらなかった場合
-                    state.phase = Phase::Night {
-                        count: count + 1,
-                        waiting: state.survivors.clone(),
-                    };
+            Phase::Day {
+                count,
+                ref mut candidates,
+                ref mut votes,
+            } => {
+                // 全員投票が終わったら
+                if votes.len() == state.survivors.len() {
+                    // 投票の集計
+                    let mut max = 0; // 最大の得票数
+                    candidates.clear(); // 最大得票の候補者を洗いだす
+                    let mut votes_count = HashMap::new(); // 得票数
+                    for candidate in votes.values() {
+                        let counter = votes_count.entry(candidate).or_insert(0);
+                        *counter += 1;
+                        if max <= *counter {
+                            if max < *counter {
+                                max = *counter;
+                                candidates.clear();
+                            }
+                            candidates.insert(candidate.to_owned());
+                        }
+                    }
+                    if candidates.len() != 1 {
+                        // 追放者が決まらなかった場合
+                        // 決戦投票
+                        votes.clear();
+                        return Ok(());
+                    }
+                    let exiled_player = candidates.iter().next().unwrap(); // 追放される人
+                    state.survivors.remove(exiled_player);
+                    if !state.judge() {
+                        // 勝敗が決まらなかった場合
+                        state.phase = Phase::Night {
+                            count: count + 1,
+                            waiting: state.survivors.clone(),
+                        };
+                    }
                 }
             }
             Phase::Waiting | Phase::End(_) => {}

@@ -19,8 +19,7 @@ impl Role {
     /// チームを返す。
     pub fn team(&self) -> Team {
         match self {
-            Self::Citizen => Team::Citizen,
-            Self::Seer(_) => Team::Citizen,
+            Self::Citizen | Self::Seer(_) => Team::Citizen,
             Self::Wolf => Team::Wolf,
         }
     }

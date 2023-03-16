@@ -1,9 +1,8 @@
-mod request;
 mod phase;
+pub mod request;
 
 use super::role::{Role, Team};
 pub use phase::Phase;
-pub use request::{Request, Error};
 
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -37,11 +36,8 @@ impl State {
         }
         output
     }
-}
-
-// 初期化
-impl Default for State {
-    fn default() -> Self {
+    // 初期化
+    pub(crate) fn new() -> Self {
         State {
             phase: Phase::Waiting,
             members: HashSet::new(),

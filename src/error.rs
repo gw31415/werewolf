@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 use crate::master::Error as AuthError;
-use crate::state::Error as RequestError;
+use crate::state::request::Error as RequestError;
 
 /// エラー一覧
 #[derive(Error, Debug)]

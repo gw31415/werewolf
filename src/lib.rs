@@ -1,11 +1,11 @@
 pub mod role;
 pub mod state;
+pub mod master;
 
 mod error;
 pub use error::Error;
-
-mod master;
-pub use master::{Master, Token, TOKEN_LENGTH};
+pub use master::Master;
+pub use state::request::Request;
 
 use crate::state::{Name, State};
 use std::collections::HashMap;

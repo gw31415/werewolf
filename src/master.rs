@@ -39,7 +39,7 @@ impl<'master> Master<'master> {
     /// ユーザー待機状態のゲームマスターのインスタンスを返す。
     pub fn new() -> Self {
         Master {
-            state: State::default(),
+            state: State::new(),
             tokens: BiHashMap::new(),
             client_states: HashMap::new(),
         }

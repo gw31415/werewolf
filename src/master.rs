@@ -8,8 +8,10 @@ use thiserror::Error;
 /// 認証周辺のエラー
 #[derive(Error, Debug)]
 pub enum Error {
+    /// 登録時のユーザー名が被る場合
     #[error("display name of `{0}` is already in use.")]
     NameAlreadyRegistered(String),
+    /// 認証に失敗した場合
     #[error("authentication failed.")]
     AuthenticationFailed,
 }

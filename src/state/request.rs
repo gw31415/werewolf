@@ -8,12 +8,16 @@ use thiserror::Error;
 /// リクエスト処理時のエラー
 #[derive(Error, Debug)]
 pub enum Error {
+    /// 場面が適切でない場合
     #[error("invalid Phase (found {found:?}, expected pattern {expected:?})")]
     InvalidPhase { found: Box<Phase>, expected: String },
+    /// ターゲットが適切でない場合
     #[error("you cannot request about `{0}`.")]
     InvalidTarget(String),
+    /// リクエスト元が追放または殺害されている場合
     #[error("this request is allowed only survivors.")]
     SurvivorsOnly,
+    /// 場面あたりのリクエスト回数を超過した場合
     #[error("cannot act more than once")]
     MultipleActions,
 }
@@ -21,11 +25,14 @@ pub enum Error {
 /// 送受信されるリクエスト
 #[derive(Serialize, Deserialize)]
 pub enum Request {
-    /// 投票: 生存者・日中・候補者(独自変数)
+    /// 投票
+    // 生存者・日中・候補者(独自変数)
     Vote(Name),
-    /// 殺害: 役職[人狼]・夜間・ターゲット[生存者]・夜間1回のみ
+    /// 殺害
+    // 役職[人狼]・夜間・ターゲット[生存者]・夜間1回のみ
     Kill(Name),
-    /// 占い: 役職[占い師]・夜間・ターゲット[生存者、占っていない人]・夜間1回のみ
+    /// 占い
+    // 役職[占い師]・夜間・ターゲット[生存者、占っていない人]・夜間1回のみ
     Divine(Name),
 }
 

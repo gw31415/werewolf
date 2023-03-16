@@ -1,7 +1,7 @@
 use super::{Name, Permission, State};
 
 use bimap::BiHashMap;
-use rand::distributions::{Alphanumeric, DistString};
+use rand::random;
 use std::collections::HashMap;
 use thiserror::Error;
 
@@ -15,9 +15,9 @@ pub enum Error {
 }
 
 /// トークン
-pub type Token = String;
-/// Token文字列の長さ
-pub const TOKEN_LENGTH: usize = 32;
+pub type Token = [u8; TOKEN_LENGTH];
+/// Tokenバイト列の長さ
+const TOKEN_LENGTH: usize = 32;
 
 /// ゲームマスター
 pub struct Master<'master> {
@@ -49,8 +49,8 @@ impl<'master> Master<'master> {
         if self.tokens.contains_right(&name) {
             return Err(Error::NameAlreadyRegistered(name));
         }
-        let token: Token = Alphanumeric.sample_string(&mut rand::thread_rng(), TOKEN_LENGTH);
-        self.tokens.insert(token.clone(), name);
+        let token: Token = random();
+        self.tokens.insert(token, name);
         Ok(token)
     }
     /// トークンからパーミッションを得る

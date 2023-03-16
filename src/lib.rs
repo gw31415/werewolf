@@ -1,9 +1,18 @@
-mod error;
-mod player;
-mod role;
-mod state;
+pub mod error;
+pub mod role;
+pub mod state;
 
 pub use error::Error;
-pub use player::{Master, Player, Token, TOKEN_LENGTH};
-pub use role::{Role, Team};
-pub use state::{Name, Phase, Request, State};
+
+mod master;
+pub use master::{Master, Token, TOKEN_LENGTH};
+
+use crate::state::{Name, State};
+use std::collections::HashMap;
+
+/// リクエストを処理する権限
+pub struct Permission<'master> {
+    name: &'master Name,
+    state: &'master mut State,
+    client_states: &'master mut HashMap<&'master Name, State>,
+}

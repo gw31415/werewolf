@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::Name;
+use crate::state::Name;
 
 /// 役職
 #[derive(Serialize, Deserialize, PartialEq, Clone)]

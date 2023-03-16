@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::Phase;
+use crate::state::Phase;
 
 /// エラー一覧
 #[derive(Error, Debug)]

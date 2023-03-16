@@ -22,22 +22,22 @@ pub type Token = [u8; TOKEN_LENGTH];
 const TOKEN_LENGTH: usize = 32;
 
 /// ゲームマスター
-pub struct Master<'master> {
+pub struct Master {
     /// 状態
     state: State,
     /// トークンから表示名への辞書
     tokens: BiHashMap<Token, Name>,
     /// 各ユーザーが閲覧している状態(マスク&変換済みのもの)
-    client_states: HashMap<&'master Name, State>,
+    client_states: HashMap<Name, State>,
 }
 
-impl<'master> Default for Master<'master> {
+impl Default for Master {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'master> Master<'master> {
+impl Master {
     /// ユーザー待機状態のゲームマスターのインスタンスを返す。
     pub fn new() -> Self {
         Master {
@@ -64,9 +64,17 @@ impl<'master> Master<'master> {
         Ok(token)
     }
     /// トークンからパーミッションを得る
-    pub fn login(&'master mut self, token: &Token) -> Result<Permission<'master>, Error> {
+    /// # Example
+    /// ```
+    /// use werewolf::master::{Master, Error::AuthenticationFailed};
+    /// let mut master = Master::new();
+    /// let token = master.signup("たろう".to_string()).unwrap();
+    /// assert!(matches!(master.login(&token), Ok(_permission)));
+    /// assert!(matches!(master.login(&Default::default()), Err(AuthenticationFailed)));
+    /// ```
+    pub fn login(&mut self, token: &Token) -> Result<Permission, Error> {
         let Self {
-            ref mut state,
+            state,
             ref tokens,
             client_states,
         } = self;

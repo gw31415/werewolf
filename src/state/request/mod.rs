@@ -130,7 +130,7 @@ impl<'state> Request {
         for name in state.members.iter() {
             let next_state = create_masked_state(state, name);
             // ユーザー毎の状態を更新し、実際に更新されたユーザー名のリストを作成する。
-            if Some(&next_state) != client_states.insert(name, next_state.clone()).as_ref() {
+            if Some(&next_state) != client_states.insert(name.to_owned(), next_state.clone()).as_ref() {
                 updated_list.push((name, next_state));
             }
         }

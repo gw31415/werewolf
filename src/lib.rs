@@ -14,5 +14,5 @@ use std::collections::HashMap;
 pub struct Permission<'master> {
     name: &'master Name,
     state: &'master mut State,
-    client_states: &'master mut HashMap<&'master Name, State>,
+    client_states: &'master mut HashMap<Name, State>,
 }

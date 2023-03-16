@@ -1,8 +1,22 @@
+use super::{Name, Phase, Role, State, Team};
+use crate::Permission;
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use thiserror::Error;
 
-use super::{Name, Phase, Role, State, Team};
-use crate::{Error, Permission};
+/// リクエスト処理時のエラー
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("invalid Phase (found {found:?}, expected pattern {expected:?})")]
+    InvalidPhase { found: Box<Phase>, expected: String },
+    #[error("you cannot request about `{0}`.")]
+    InvalidTarget(String),
+    #[error("this request is allowed only survivors.")]
+    SurvivorsOnly,
+    #[error("cannot act more than once")]
+    MultipleActions,
+}
 
 /// 送受信されるリクエスト
 #[derive(Serialize, Deserialize)]
@@ -14,6 +28,7 @@ pub enum Request {
     /// 占い: 役職[占い師]・夜間・ターゲット[生存者、占っていない人]・夜間1回のみ
     Divine(Name),
 }
+
 impl<'state> Request {
     /// Stateを更新する。
     pub fn execute(&self, player: Permission<'state>) -> Result<Vec<(&'state Name, State)>, Error> {
@@ -28,7 +43,7 @@ impl<'state> Request {
                 ($expected:pat) => {
                     let $expected = state.phase else {
                         return Err(Error::InvalidPhase {
-                            found: state.phase.to_owned(), expected: stringify!($expected).to_string(),
+                            found: Box::new(state.phase.to_owned()), expected: stringify!($expected).to_string(),
                         });
                     };
                 };
@@ -38,7 +53,7 @@ impl<'state> Request {
                 ($expected:pat) => {
                     let $expected = state.role.get_mut(sender).unwrap() else {
                         return Err(Error::InvalidPhase {
-                            found: state.phase.to_owned(), expected: stringify!($expected).to_string(),
+                            found: Box::new(state.phase.to_owned()), expected: stringify!($expected).to_string(),
                         });
                     };
                 };

@@ -1,7 +1,7 @@
-pub mod error;
 pub mod role;
 pub mod state;
 
+mod error;
 pub use error::Error;
 
 mod master;

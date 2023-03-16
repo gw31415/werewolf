@@ -1,7 +1,18 @@
-use super::{Error, Name, Permission, State};
+use super::{Name, Permission, State};
+
 use bimap::BiHashMap;
 use rand::distributions::{Alphanumeric, DistString};
 use std::collections::HashMap;
+use thiserror::Error;
+
+/// 認証周辺のエラー
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("display name of `{0}` is already in use.")]
+    NameAlreadyRegistered(String),
+    #[error("authentication failed.")]
+    AuthenticationFailed,
+}
 
 /// トークン
 pub type Token = String;
@@ -43,14 +54,14 @@ impl<'master> Master<'master> {
         Ok(token)
     }
     /// トークンからパーミッションを得る
-    pub fn login(&'master mut self, token: &Token) -> Result<Permission<'master>, ()> {
+    pub fn login(&'master mut self, token: &Token) -> Result<Permission<'master>, Error> {
         let Self {
             ref mut state,
             ref tokens,
             client_states,
         } = self;
         let Some(name) = tokens.get_by_left(token) else {
-            return  Err(());
+            return  Err(Error::AuthenticationFailed);
         };
         Ok(Permission {
             state,
@@ -59,4 +70,3 @@ impl<'master> Master<'master> {
         })
     }
 }
-

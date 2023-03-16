@@ -1,23 +1,15 @@
 use thiserror::Error;
 
-use crate::state::Phase;
+use crate::master::Error as AuthError;
+use crate::state::Error as RequestError;
 
 /// エラー一覧
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("display name of `{0}` is already in use.")]
-    NameAlreadyRegistered(String),
-    #[error("unauthorized.")]
-    Unauthorized,
-    #[error("invalid Phase (found {found:?}, expected pattern {expected:?})")]
-    InvalidPhase {
-        found: Phase,
-        expected: String,
-    },
-    #[error("you cannot request about `{0}`.")]
-    InvalidTarget(String),
-    #[error("this request is allowed only survivors.")]
-    SurvivorsOnly,
-    #[error("cannot act more than once")]
-    MultipleActions,
+    /// 認証時のエラー
+    #[error("AuthError: {0}")]
+    Auth(#[from] AuthError),
+    /// リクエスト処理時のエラー
+    #[error("RequestFailed: {0}")]
+    RequestFailed(#[from] RequestError),
 }

@@ -3,7 +3,7 @@ mod phase;
 
 use super::role::{Role, Team};
 pub use phase::Phase;
-pub use request::Request;
+pub use request::{Request, Error};
 
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};

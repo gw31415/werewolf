@@ -11,7 +11,7 @@ use std::collections::{HashMap, HashSet};
 pub type Name = String;
 
 /// ゲームの状態
-#[derive(Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct State {
     /// 現在のフェーズ
     pub phase: Phase,

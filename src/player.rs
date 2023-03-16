@@ -1,7 +1,5 @@
 use crate::error::Error;
-use crate::request::Request;
-use crate::state::State;
-use crate::Name;
+use crate::state::{Request, State, Name};
 use std::collections::HashMap;
 
 /// プレイヤー

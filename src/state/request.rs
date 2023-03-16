@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::{Error, Name, Phase, Role, State};
+use super::{Name, Phase, Role, State};
+use crate::{Error, Team};
 
 /// 送受信されるリクエスト
 #[derive(Serialize, Deserialize)]
@@ -15,7 +16,7 @@ pub enum Request {
 }
 impl<'state> Request {
     /// Stateを更新する。
-    pub fn apply_to(&self, state: &'state mut State, sender: &Name) -> Result<(), Error> {
+    pub(crate) fn apply_to(&self, state: &'state mut State, sender: &Name) -> Result<(), Error> {
         /// フェーズの確認をする
         macro_rules! assert_phase {
             ($expected:pat) => {
@@ -133,7 +134,7 @@ impl<'state> Request {
                             }
                         }
                     }
-                    if !state.judge() {
+                    if judge(state) {
                         // 勝敗確認
                         state.phase = Phase::Day {
                             count,
@@ -173,7 +174,7 @@ impl<'state> Request {
                     }
                     let exiled_player = candidates.iter().next().unwrap(); // 追放される人
                     state.survivors.remove(exiled_player);
-                    if !state.judge() {
+                    if judge(state) {
                         // 勝敗が決まらなかった場合
                         state.phase = Phase::Night {
                             count: count + 1,
@@ -186,4 +187,57 @@ impl<'state> Request {
         }
         Ok(())
     }
+}
+
+/// 勝敗を確認する。終了した場合はPhaseをEndにし、trueを返す。
+/// 終了しなかった場合はfalseを返す。
+fn judge(state: &mut State) -> bool {
+    let State {
+        ref survivors,
+        ref role,
+        ref mut phase,
+        ..
+    } = state;
+
+    // 陣営の数を数える
+    let mut iter = survivors.iter();
+    let (mut wolf_count, mut citizen_count) = (0usize, 0usize);
+    let mut check_wolf_win_after_increment = |survivor: &Name| {
+        let role = role.get(survivor).unwrap();
+        match role.team() {
+            Team::Wolf => {
+                wolf_count += 1;
+            }
+            Team::Citizen => {
+                citizen_count += 1;
+            }
+        }
+        if wolf_count >= citizen_count {
+            *phase = Phase::End(Team::Wolf);
+            return true;
+        }
+        false
+    };
+
+    'wolf_presence_check: {
+        // 市民の勝利条件確認(人狼の存在の有無)
+        for survivor in &mut iter {
+            if check_wolf_win_after_increment(survivor) {
+                return true;
+            }
+            if let Role::Wolf(_) = state.role.get(survivor).unwrap() {
+                break 'wolf_presence_check;
+            }
+        }
+        // 人狼が存在しなければ市民陣営の勝利
+        *phase = Phase::End(Team::Citizen);
+        return true;
+    }
+    for survivor in &mut iter {
+        if check_wolf_win_after_increment(survivor) {
+            return true;
+        }
+    }
+    // この時点で、人狼の勝利条件確認の終了 (人狼>市民)
+    false
 }

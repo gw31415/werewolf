@@ -70,7 +70,7 @@ impl<'state> Request {
                 // 投票リストの更新
                 votes.insert(sender.to_owned(), vote_to.to_owned());
             }
-            Request::Kill(name) => {
+            Self::Kill(name) => {
                 // 夜間に限る
                 assert_phase!(Phase::Night{ ref mut waiting, .. });
                 // 人狼に限る
@@ -87,7 +87,7 @@ impl<'state> Request {
                 // タスク終了の通知
                 waiting.remove(sender);
             }
-            Request::Divine(name) => {
+            Self::Divine(name) => {
                 // 夜間に限る
                 assert_phase!(Phase::Night{ ref mut waiting, .. });
                 // ユーザーが生存しているか確認する

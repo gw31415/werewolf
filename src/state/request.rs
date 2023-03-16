@@ -217,7 +217,7 @@ impl<'state> Request {
         // この更新結果を他ユーザーに通知をすべきなのか。
         let mut updated_list = Vec::new();
         for name in state.members.iter() {
-            let next_state = state.create_masked_for(name);
+            let next_state = create_masked_state(state, name);
             // ユーザー毎の状態を更新し、実際に更新されたユーザー名のリストを作成する。
             if Some(&next_state) != client_states.insert(name, next_state.clone()).as_ref() {
                 updated_list.push((name, next_state));
@@ -225,6 +225,19 @@ impl<'state> Request {
         }
         Ok(updated_list)
     }
+}
+
+/// stateを各ユーザーの権限に基づいてマスク・変換したものを作成する。
+fn create_masked_state(state: &State, name: &str) -> State {
+    let mut output = state.clone();
+    // 他プレイヤーの情報を外す
+    for another_member in state.members.iter() {
+        if another_member == name {
+            continue;
+        }
+        output.role.remove(another_member);
+    }
+    output
 }
 
 /// 勝敗を確認する。終了した場合はPhaseをEndにし、trueを返す。

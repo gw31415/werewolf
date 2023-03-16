@@ -24,18 +24,6 @@ pub struct State {
 }
 
 impl State {
-    /// stateを各ユーザーの権限に基づいてマスク・変換したものを作成する。
-    pub(crate) fn create_masked_for(&self, name: &str) -> Self {
-        let mut output = self.clone();
-        // 他プレイヤーの情報を外す
-        for another_member in self.members.iter() {
-            if another_member == name {
-                continue;
-            }
-            output.role.remove(another_member);
-        }
-        output
-    }
     // 初期化
     pub(crate) fn new() -> Self {
         State {

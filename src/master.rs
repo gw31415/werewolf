@@ -47,6 +47,14 @@ impl<'master> Master<'master> {
         }
     }
     /// ユーザーを登録する
+    /// # Example
+    /// ```
+    /// use werewolf::master::{Master, Error::NameAlreadyRegistered};
+    /// let mut master = Master::new();
+    /// assert!(matches!(master.signup("たろう".to_string()), Ok(_token)));
+    /// assert!(matches!(master.signup("はなこ".to_string()), Ok(_token)));
+    /// assert!(matches!(master.signup("たろう".to_string()), Err(NameAlreadyRegistered(_))));
+    /// ```
     pub fn signup(&mut self, name: Name) -> Result<Token, Error> {
         if self.tokens.contains_right(&name) {
             return Err(Error::NameAlreadyRegistered(name));

@@ -23,12 +23,12 @@ pub enum Request {
 
 impl<'state> Request {
     /// Stateを更新する。
-    pub fn execute(&self, player: Permission<'state>) -> Result<Vec<(&'state Name, State)>, Error> {
+    pub fn execute(&self, permission: Permission<'state>) -> Result<Vec<(&'state Name, State)>, Error> {
         let Permission {
             state,
             name: sender,
             client_states,
-        } = player;
+        } = permission;
         /// フェーズの確認をする
         macro_rules! assert_phase {
             ($expected:pat) => {

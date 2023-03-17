@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::state::Name;
 
 /// 役職
-#[derive(Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Clone, Debug)]
 pub enum Role {
     /// 市民
     Citizen,

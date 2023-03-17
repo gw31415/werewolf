@@ -43,8 +43,8 @@ impl<'state> Request {
         macro_rules! assert_role {
             ($expected:pat) => {
                 let $expected = state.role.get_mut(sender).unwrap() else {
-                    return Err(Error::InvalidPhase {
-                        found: Box::new(state.phase.to_owned()), expected: stringify!($expected).to_string(),
+                    return Err(Error::InvalidRole {
+                        found: Box::new(state.role.get(sender).unwrap().to_owned()), expected: stringify!($expected).to_string(),
                     });
                 };
             };

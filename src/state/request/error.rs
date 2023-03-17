@@ -1,4 +1,6 @@
 use super::Phase;
+use crate::role::Role;
+
 use thiserror::Error;
 
 /// リクエスト処理時のエラー
@@ -7,6 +9,9 @@ pub enum Error {
     /// 場面が適切でない場合
     #[error("invalid Phase (found {found:?}, expected pattern {expected:?})")]
     InvalidPhase { found: Box<Phase>, expected: String },
+    /// 役職が適切でない場合
+    #[error("invalid Role (found {found:?}, expected pattern {expected:?})")]
+    InvalidRole { found: Box<Role>, expected: String },
     /// ターゲットが適切でない場合
     #[error("you cannot request about `{0}`.")]
     InvalidTarget(String),

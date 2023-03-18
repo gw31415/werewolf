@@ -2,6 +2,7 @@ use super::{Name, Permission, State};
 
 use bimap::BiHashMap;
 use rand::random;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use thiserror::Error;
 
@@ -23,12 +24,19 @@ const TOKEN_LENGTH: usize = 32;
 
 /// ゲームマスター
 pub struct Master {
-    /// 状態
-    state: State,
     /// トークンから表示名への辞書
     tokens: BiHashMap<Token, Name>,
+    /// ゲーム設定。ゲーム開始から変更されないデータ全般
+    config: Config,
+    /// 状態。ゲームの進行と共に変化していくデータ全般
+    state: State,
     /// 各ユーザーが閲覧している状態(マスク&変換済みのもの)
     client_states: HashMap<Name, State>,
+}
+
+/// ゲーム設定
+#[derive(Serialize, Deserialize, Default)]
+pub struct Config {
 }
 
 impl Default for Master {
@@ -44,6 +52,7 @@ impl Master {
             state: State::new(),
             tokens: BiHashMap::new(),
             client_states: HashMap::new(),
+            config: Config::default(),
         }
     }
     /// ユーザーを登録する

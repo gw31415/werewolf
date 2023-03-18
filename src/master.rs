@@ -34,8 +34,7 @@ pub struct Master {
 
 /// ゲーム設定
 #[derive(Serialize, Deserialize, Default)]
-pub struct Config {
-}
+pub struct Config {}
 
 impl Default for Master {
     fn default() -> Self {
@@ -84,6 +83,7 @@ impl Master {
             state,
             ref tokens,
             client_states,
+            ..
         } = self;
         let Some(name) = tokens.get_by_left(token) else {
             return  Err(Error::AuthenticationFailed);

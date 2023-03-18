@@ -1,7 +1,7 @@
 mod phase;
 pub mod request;
 
-use super::role::{Role, Team};
+use crate::role::{Role, Team};
 pub use phase::Phase;
 
 use serde::{Deserialize, Serialize};

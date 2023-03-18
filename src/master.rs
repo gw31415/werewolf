@@ -18,9 +18,7 @@ pub enum Error {
 }
 
 /// トークン
-pub type Token = [u8; TOKEN_LENGTH];
-/// Tokenバイト列の長さ
-const TOKEN_LENGTH: usize = 32;
+pub type Token = [u8; 32];
 
 /// ゲームマスター
 pub struct Master {

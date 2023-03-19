@@ -1,3 +1,5 @@
+use crate::state::Phase;
+
 use super::{Name, Permission, State};
 
 use bimap::BiHashMap;
@@ -30,6 +32,8 @@ pub struct Master {
     state: State,
     /// 各ユーザーが閲覧している状態(マスク&変換済みのもの)
     client_states: HashMap<Name, State>,
+    /// 状態。ゲームの進行と共に変化していくデータ全般
+    phase: Phase,
 }
 
 /// ゲーム設定
@@ -50,6 +54,7 @@ impl Master {
             tokens: BiHashMap::new(),
             client_states: HashMap::new(),
             config: Config::default(),
+            phase: Phase::Waiting,
         }
     }
     /// ユーザーを登録する
@@ -83,6 +88,7 @@ impl Master {
             state,
             ref tokens,
             client_states,
+            phase,
             ..
         } = self;
         let Some(name) = tokens.get_by_left(token) else {
@@ -92,6 +98,7 @@ impl Master {
             state,
             name,
             client_states,
+            phase,
         })
     }
 }

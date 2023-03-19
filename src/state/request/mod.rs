@@ -31,13 +31,14 @@ impl<'state> Request {
             state,
             name: sender,
             client_states,
+            phase,
         } = permission;
         /// フェーズの確認をする
         macro_rules! assert_phase {
             ($expected:pat) => {
-                let $expected = state.phase else {
+                let $expected = phase else {
                     return Err(Error::InvalidPhase {
-                        found: Box::new(state.phase.to_owned()), expected: stringify!($expected).to_string(),
+                        found: Box::new(phase.to_owned()), expected: stringify!($expected).to_string(),
                     });
                 };
             };

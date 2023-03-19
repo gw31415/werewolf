@@ -4,14 +4,14 @@ pub mod request;
 use crate::role::{Role, Team};
 pub use phase::Phase;
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::collections::{HashMap, HashSet};
 
 /// IDとして使用する表示名
 pub type Name = String;
 
 /// ゲームの状態
-#[derive(Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[derive(Serialize, PartialEq, Eq, Clone)]
 pub struct State {
     /// 現在のフェーズ
     pub phase: Phase,

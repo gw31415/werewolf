@@ -1,9 +1,9 @@
 use super::{Name, Team};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::collections::{HashMap, HashSet};
 
 /// フェーズ
-#[derive(Serialize, Deserialize, PartialEq, Eq, Clone, Debug)]
+#[derive(Serialize, PartialEq, Eq, Clone, Debug)]
 pub enum Phase {
     /// メンバー募集中
     Waiting,

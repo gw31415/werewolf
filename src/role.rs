@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::state::Name;
 
 /// 役職
-#[derive(Serialize, Deserialize, PartialEq, Eq, Clone, Debug)]
+#[derive(Serialize, PartialEq, Eq, Clone, Debug)]
 pub enum Role {
     /// 市民
     Citizen,
@@ -26,7 +26,7 @@ impl Role {
 }
 
 /// 陣営
-#[derive(Serialize, Deserialize, PartialEq, Eq, Clone, Debug)]
+#[derive(Serialize, PartialEq, Eq, Clone, Debug)]
 pub enum Team {
     /// 市民陣営
     Citizen,

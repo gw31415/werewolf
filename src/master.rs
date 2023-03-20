@@ -1,11 +1,8 @@
-use crate::state::Phase;
-
 use super::{Name, Permission, State};
 
 use bimap::BiHashMap;
 use rand::random;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use thiserror::Error;
 
 /// 認証周辺のエラー
@@ -30,10 +27,6 @@ pub struct Master {
     config: Config,
     /// 状態。ゲームの進行と共に変化していくデータ全般
     state: State,
-    /// 各ユーザーが閲覧している状態(マスク&変換済みのもの)
-    client_states: HashMap<Name, State>,
-    /// 状態。ゲームの進行と共に変化していくデータ全般
-    phase: Phase,
 }
 
 /// ゲーム設定
@@ -50,11 +43,9 @@ impl Master {
     /// ユーザー待機状態のゲームマスターのインスタンスを返す。
     pub fn new() -> Self {
         Master {
-            state: State::new(),
+            state: State::default(),
             tokens: BiHashMap::new(),
-            client_states: HashMap::new(),
             config: Config::default(),
-            phase: Phase::Waiting,
         }
     }
     /// ユーザーを登録する
@@ -87,18 +78,11 @@ impl Master {
         let Self {
             state,
             ref tokens,
-            client_states,
-            phase,
-            ..
+            config,
         } = self;
         let Some(name) = tokens.get_by_left(token) else {
             return  Err(Error::AuthenticationFailed);
         };
-        Ok(Permission {
-            state,
-            name,
-            client_states,
-            phase,
-        })
+        Ok(Permission { name, state, config })
     }
 }

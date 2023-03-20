@@ -1,36 +1,47 @@
-mod phase;
 pub mod request;
 
 use crate::role::{Role, Team};
-pub use phase::Phase;
 
-use serde::Serialize;
 use std::collections::{HashMap, HashSet};
 
-/// IDとして使用する表示名
 pub type Name = String;
 
-/// ゲームの状態
-#[derive(Serialize, PartialEq, Eq, Clone)]
-pub struct State {
-    /// 現在のフェーズ
-    pub phase: Phase,
-    /// メンバー一覧
-    pub members: HashSet<Name>,
-    /// 役職のマップ
-    pub role: HashMap<Name, Role>,
-    /// 生存者
-    pub survivors: HashSet<Name>,
-}
+/// フェーズ
+#[derive(Default, Debug, Clone)]
+pub enum State {
+    /// メンバー募集中
+    #[default]
+    Waiting,
+    /// 夜
+    Night {
+        /// 何周目であるか
+        count: usize,
+        /// 役職
+        role: HashMap<Name, Role>,
+        /// 待機中の人
+        waiting: HashSet<Name>,
+        /// 生存している人
+        survivors: HashSet<Name>,
 
-impl State {
-    // 初期化
-    pub(crate) fn new() -> Self {
-        State {
-            phase: Phase::Waiting,
-            members: HashSet::new(),
-            survivors: HashSet::new(),
-            role: HashMap::new(),
-        }
-    }
+        /// 次の昼の生存者
+        next_survivors: HashSet<Name>,
+    },
+    /// 夜
+    Day {
+        /// 何周目であるか
+        count: usize,
+        /// 役職
+        role: HashMap<Name, Role>,
+        /// 待機中の人
+        waiting: HashSet<Name>,
+        /// 生存している人
+        survivors: HashSet<Name>,
+
+        /// 投票
+        votes: HashMap<Name, Name>,
+        /// 追放の候補者
+        candidates: HashSet<Name>,
+    },
+    /// 終了
+    End(Team),
 }

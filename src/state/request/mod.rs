@@ -1,11 +1,11 @@
 mod error;
 
-use super::{Name, Phase, Role, State, Team};
+use super::{Name, State};
+use crate::role::Role;
 use crate::Permission;
 pub use error::Error;
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// 送受信されるリクエスト
 #[derive(Serialize, Deserialize)]
@@ -23,268 +23,88 @@ pub enum Request {
 
 impl<'state> Request {
     /// Stateを更新する。
-    pub fn execute(
-        &self,
-        permission: Permission<'state>,
-    ) -> Result<Vec<(&'state Name, State)>, Error> {
-        let Permission {
-            state,
-            name: sender,
-            client_states,
-            phase,
-        } = permission;
-        /// フェーズの確認をする
-        macro_rules! assert_phase {
+    pub fn execute(&self, permission: Permission<'state>) -> Result<(), Error> {
+        let Permission { name, state, config } = permission;
+        /// 状況の確認をする
+        macro_rules! assert_state {
             ($expected:pat) => {
-                let $expected = phase else {
-                    return Err(Error::InvalidPhase {
-                        found: Box::new(phase.to_owned()), expected: stringify!($expected).to_string(),
+                let $expected = state else {
+                    return Err(Error::InvalidState {
+                        found: Box::new(state.to_owned()),
+                        expected: stringify!($expected).to_owned(),
                     });
                 };
             };
         }
         /// 役職の確認をする
         macro_rules! assert_role {
-            ($expected:pat) => {
-                let $expected = state.role.get_mut(sender).unwrap() else {
+            ($role: expr, $expected:pat) => {
+                let $expected = $role else {
                     return Err(Error::InvalidRole {
-                        found: Box::new(state.role.get(sender).unwrap().to_owned()), expected: stringify!($expected).to_string(),
+                        found: Box::new($role.to_owned()), expected: stringify!($expected).to_owned(),
                     });
                 };
             };
         }
-        /// 生存者の確認をする。
-        /// 生存確認が本人に対するものであるならば引数を省略する
-        macro_rules! assert_survive {
-            ($name: expr) => {
-                if !state.survivors.contains($name) {
-                    // 指定された名前が候補者に含まれていない場合。
-                    return Err(Error::InvalidTarget($name.to_owned()));
+        match self {
+            Self::Vote(target) => {
+                assert_state!(State::Day {
+                    waiting,
+                    survivors,
+                    votes,
+                    candidates,
+                    ..
+                });
+                if !candidates.contains(target) {
+                    return Err(Error::InvalidTarget(target.to_owned()));
                 }
-            };
-            () => {
-                if !state.survivors.contains(sender) {
+                if !survivors.contains(name) {
                     return Err(Error::SurvivorsOnly);
                 }
-            };
-        }
-
-        // リクエスト固有の処理を行う。
-        // Phaseの変更はリクエストに依存しないものが多いので、
-        // そういうものは後のmatch移譲する。
-        match self {
-            Self::Vote(vote_to) => {
-                // 日中に限る
-                assert_phase!(Phase::Day { ref mut votes, ref mut candidates, .. });
-                // 生存者に限る
-                assert_survive!();
-
-                if !candidates.contains(vote_to) {
-                    // 指定された名前が候補者に含まれていない場合。
-                    return Err(Error::InvalidTarget(vote_to.to_owned()));
-                }
-                // 投票リストの更新
-                votes.insert(sender.to_owned(), vote_to.to_owned());
-            }
-            Self::Kill(name) => {
-                // 夜間に限る
-                assert_phase!(Phase::Night{ ref mut waiting, .. });
-                // 人狼に限る
-                assert_role!(Role::Wolf(ref mut option));
-                // ユーザーが生存しているか確認する
-                assert_survive!();
-                // ターゲットが生存しているか確認する
-                assert_survive!(name);
-                // 行動済みの場合はエラー
-                if !waiting.contains(sender) {
+                if !waiting.contains(name) {
                     return Err(Error::MultipleActions);
                 }
-                *option = Some(name.to_owned());
-                // タスク終了の通知
-                waiting.remove(sender);
+                votes.insert(name.to_owned(), target.to_owned());
+                waiting.remove(name);
             }
-            Self::Divine(name) => {
-                // 夜間に限る
-                assert_phase!(Phase::Night{ ref mut waiting, .. });
-                // ユーザーが生存しているか確認する
-                assert_survive!();
-                // ターゲットが生存しているか確認する
-                assert_survive!(name);
-                // 行動済みの場合はエラー
-                if !waiting.contains(sender) {
+            Self::Kill(target) => {
+                assert_state!(State::Night {
+                    role,
+                    waiting,
+                    survivors,
+                    next_survivors,
+                    ..
+                });
+                assert_role!(role.get(name).unwrap(), Role::Wolf);
+                if !waiting.contains(name) {
                     return Err(Error::MultipleActions);
                 }
-                // ターゲットが人狼か否か
-                let target_is_wolf = matches!(state.role.get(name).unwrap(), Role::Wolf(_));
-                // 占い師に限る
-                assert_role!(Role::Seer(ref mut expected));
-                // 既に占っていた場合はエラー
-                if expected.contains_key(name) {
-                    return Err(Error::InvalidTarget(name.to_owned()));
+                if !survivors.contains(name) {
+                    return Err(Error::SurvivorsOnly);
                 }
-                expected.insert(name.to_owned(), target_is_wolf);
-                // タスク終了の通知
-                waiting.remove(sender);
+                if !survivors.contains(target) {
+                    return Err(Error::InvalidTarget(target.to_owned()));
+                }
+                next_survivors.remove(target);
+            }
+            Self::Divine(target) => {
+                assert_state!(State::Night {
+                    role,
+                    waiting,
+                    survivors,
+                    ..
+                });
+                let target_is_wolf = matches!(role.get(target).unwrap(), Role::Wolf);
+                assert_role!(role.get_mut(name).unwrap(), Role::Seer(prediction));
+                if !waiting.contains(name) {
+                    return Err(Error::MultipleActions);
+                }
+                if !survivors.contains(name) {
+                    return Err(Error::SurvivorsOnly);
+                }
+                prediction.insert(target.to_owned(), target_is_wolf);
             }
         }
-        update_phase(state);
-
-        // この更新結果を他ユーザーに通知をすべきなのか。
-        let mut updated_list = Vec::new();
-        for name in state.members.iter() {
-            let next_state = create_masked_state(state, name);
-            // ユーザー毎の状態を更新し、実際に更新されたユーザー名のリストを作成する。
-            if Some(&next_state)
-                != client_states
-                    .insert(name.to_owned(), next_state.clone())
-                    .as_ref()
-            {
-                updated_list.push((name, next_state));
-            }
-        }
-        Ok(updated_list)
+        Ok(())
     }
-}
-
-/// フェーズのアップデートをする
-fn update_phase(state: &mut State) {
-    // Phaseの推移
-    match state.phase.clone() {
-        Phase::Night { count, waiting } => {
-            if waiting.is_empty() {
-                // 行動待ちがいない場合
-                // 夜のうちにキューされた殺害リストを適用する
-                let mut kill_list: Vec<&String> = Vec::new();
-                for survivor in state.survivors.iter() {
-                    if let Role::Wolf(Some(target)) = state.role.get(survivor).unwrap() {
-                        kill_list.push(target);
-                    }
-                }
-                for name in kill_list {
-                    state.survivors.remove(name);
-                }
-                for survivor in state.survivors.iter() {
-                    if let Role::Wolf(option) = state.role.get_mut(survivor).unwrap() {
-                        if option.is_some() {
-                            *option = None;
-                        }
-                    }
-                }
-                if judge(state) {
-                    // 勝敗確認
-                    state.phase = Phase::Day {
-                        count,
-                        votes: HashMap::new(),
-                        candidates: state.survivors.clone(),
-                    }
-                }
-            }
-        }
-        Phase::Day {
-            count,
-            ref mut candidates,
-            ref mut votes,
-        } => {
-            // 全員投票が終わったら
-            if votes.len() == state.survivors.len() {
-                // 投票の集計
-                let mut max = 0; // 最大の得票数
-                candidates.clear(); // 最大得票の候補者を洗いだす
-                let mut votes_count = HashMap::new(); // 得票数
-                for candidate in votes.values() {
-                    let counter = votes_count.entry(candidate).or_insert(0);
-                    *counter += 1;
-                    if max <= *counter {
-                        if max < *counter {
-                            max = *counter;
-                            candidates.clear();
-                        }
-                        candidates.insert(candidate.to_owned());
-                    }
-                }
-                if candidates.len() != 1 {
-                    // 追放者が決まらなかった場合
-                    // 決戦投票
-                    votes.clear();
-                    return;
-                }
-                let exiled_player = candidates.iter().next().unwrap(); // 追放される人
-                state.survivors.remove(exiled_player);
-                if judge(state) {
-                    // 勝敗が決まらなかった場合
-                    state.phase = Phase::Night {
-                        count: count + 1,
-                        waiting: state.survivors.clone(),
-                    };
-                }
-            }
-        }
-        Phase::Waiting | Phase::End(_) => {}
-    }
-}
-
-/// 勝敗を確認する。終了した場合はPhaseをEndにし、trueを返す。
-/// 終了しなかった場合はfalseを返す。
-fn judge(state: &mut State) -> bool {
-    let State {
-        ref survivors,
-        ref role,
-        ref mut phase,
-        ..
-    } = state;
-
-    // 陣営の数を数える
-    let mut iter = survivors.iter();
-    let (mut wolf_count, mut citizen_count) = (0usize, 0usize);
-    let mut check_wolf_win_after_increment = |survivor: &Name| {
-        let role = role.get(survivor).unwrap();
-        match role.team() {
-            Team::Wolf => {
-                wolf_count += 1;
-            }
-            Team::Citizen => {
-                citizen_count += 1;
-            }
-        }
-        if wolf_count >= citizen_count {
-            *phase = Phase::End(Team::Wolf);
-            return true;
-        }
-        false
-    };
-
-    'wolf_presence_check: {
-        // 市民の勝利条件確認(人狼の存在の有無)
-        for survivor in &mut iter {
-            if check_wolf_win_after_increment(survivor) {
-                return true;
-            }
-            if let Role::Wolf(_) = state.role.get(survivor).unwrap() {
-                break 'wolf_presence_check;
-            }
-        }
-        // 人狼が存在しなければ市民陣営の勝利
-        *phase = Phase::End(Team::Citizen);
-        return true;
-    }
-    for survivor in &mut iter {
-        if check_wolf_win_after_increment(survivor) {
-            return true;
-        }
-    }
-    // この時点で、人狼の勝利条件確認の終了 (人狼>市民)
-    false
-}
-
-/// stateを各ユーザーの権限に基づいてマスク・変換したものを作成する。
-fn create_masked_state(state: &State, name: &str) -> State {
-    let mut output = state.clone();
-    // 他プレイヤーの情報を外す
-    for another_member in state.members.iter() {
-        if another_member == name {
-            continue;
-        }
-        output.role.remove(another_member);
-    }
-    output
 }

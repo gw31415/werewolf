@@ -10,8 +10,9 @@ pub enum Role {
     /// 市民
     Citizen,
     /// 人狼
-    Wolf(Option<Name>),
+    Wolf,
     /// 占い師
+    /// HashMapの値は黒(人狼サイド)のときにtrue
     Seer(HashMap<Name, bool>),
 }
 
@@ -20,7 +21,7 @@ impl Role {
     pub fn team(&self) -> Team {
         match self {
             Self::Citizen | Self::Seer(_) => Team::Citizen,
-            Self::Wolf(_) => Team::Wolf,
+            Self::Wolf => Team::Wolf,
         }
     }
 }

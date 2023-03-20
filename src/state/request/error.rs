@@ -1,5 +1,4 @@
-use super::Phase;
-use crate::role::Role;
+use crate::{role::Role, state::State};
 
 use thiserror::Error;
 
@@ -7,8 +6,8 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum Error {
     /// 場面が適切でない場合
-    #[error("invalid Phase (found {found:?}, expected pattern {expected:?})")]
-    InvalidPhase { found: Box<Phase>, expected: String },
+    #[error("invalid State (found {found:?}, expected pattern {expected:?})")]
+    InvalidState { found: Box<State>, expected: String },
     /// 役職が適切でない場合
     #[error("invalid Role (found {found:?}, expected pattern {expected:?})")]
     InvalidRole { found: Box<Role>, expected: String },

@@ -1,17 +1,19 @@
 pub mod request;
 
-use crate::role::{Role, Team};
+use crate::{
+    master::Config,
+    role::{Role, Team},
+};
 
 use std::collections::{HashMap, HashSet};
 
 pub type Name = String;
 
 /// フェーズ
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub enum State {
     /// メンバー募集中
-    #[default]
-    Waiting,
+    Waiting(Config),
     /// 夜
     Night {
         /// 何周目であるか
@@ -44,4 +46,10 @@ pub enum State {
     },
     /// 終了
     End(Team),
+}
+
+impl Default for State {
+    fn default() -> Self {
+        Self::Waiting(Config::default())
+    }
 }

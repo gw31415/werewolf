@@ -1,7 +1,7 @@
 mod error;
 
 use super::{Name, State};
-use crate::role::Role;
+use crate::{role::Role, master::Config};
 use crate::Permission;
 pub use error::Error;
 
@@ -10,6 +10,8 @@ use serde::{Deserialize, Serialize};
 /// 送受信されるリクエスト
 #[derive(Serialize, Deserialize)]
 pub enum Request {
+    /// ルール設定
+    SetConfig(Config),
     /// 投票
     // 生存者・日中・候補者(独自変数)
     Vote(Name),
@@ -47,6 +49,9 @@ impl<'state> Request {
             };
         }
         match self {
+            Self::SetConfig(config) => {
+                todo!()
+            }
             Self::Vote(target) => {
                 assert_state!(State::Day {
                     waiting,

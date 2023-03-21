@@ -30,7 +30,7 @@ pub struct Master {
 }
 
 /// ゲーム設定
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Clone, Debug)]
 pub struct Config {}
 
 impl Default for Master {

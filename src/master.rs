@@ -1,3 +1,5 @@
+use std::cell::Cell;
+
 use super::{Name, Permission, State};
 
 use bimap::BiHashMap;
@@ -26,7 +28,7 @@ pub struct Master {
     /// ゲーム設定。ゲーム開始から変更されないデータ全般
     config: Config,
     /// 状態。ゲームの進行と共に変化していくデータ全般
-    state: State,
+    state: Cell<State>,
 }
 
 /// ゲーム設定
@@ -43,7 +45,7 @@ impl Master {
     /// ユーザー待機状態のゲームマスターのインスタンスを返す。
     pub fn new() -> Self {
         Master {
-            state: State::default(),
+            state: Cell::new(State::default()),
             tokens: BiHashMap::new(),
             config: Config::default(),
         }

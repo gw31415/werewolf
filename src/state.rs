@@ -1,5 +1,3 @@
-pub mod request;
-
 use crate::{
     master::Config,
     role::{Role, Team},

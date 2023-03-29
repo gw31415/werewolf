@@ -1,18 +1,40 @@
+pub mod master;
+pub mod request;
 pub mod role;
 pub mod state;
-pub mod master;
 
 mod error;
+
 pub use error::Error;
-use master::Config;
 pub use master::Master;
-pub use state::request::Request;
 
 use crate::state::{Name, State};
+use master::Config;
+use request::Request;
+use std::cell::Cell;
 
 /// リクエストを処理する権限
+/// Permissionが作成されると、Permissionがドロップされるまで
+/// Masterはイミュータブルになることに留意。
 pub struct Permission<'master> {
     name: &'master Name,
-    state: &'master mut State,
-    config: &'master Config,
+    state: &'master mut Cell<State>,
+    config: &'master mut Config,
+}
+
+impl<'master> Permission<'master> {
+    /// リクエストを実行する
+    pub fn execute(self, req: impl Request<'master>) -> Result<(), Error> {
+        let Self {
+            name,
+            state,
+            config,
+        } = self;
+        req.modify(name, state.get_mut(), config)?;
+        // 設定が変更されたら書きかえる
+        if let State::Waiting(next_config) = state.get_mut().to_owned() {
+            *config = next_config;
+        }
+        Ok(())
+    }
 }

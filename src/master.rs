@@ -16,6 +16,9 @@ pub enum Error {
     /// 認証に失敗した場合
     #[error("authentication failed.")]
     AuthenticationFailed,
+    /// ゲームが既に始まっていた場合
+    #[error("game has already started.")]
+    GameAlreadyStarted,
 }
 
 /// トークン
@@ -60,12 +63,16 @@ impl Master {
     /// assert!(matches!(master.signup("たろう".to_string()), Err(NameAlreadyRegistered(_))));
     /// ```
     pub fn signup(&mut self, name: Name) -> Result<Token, Error> {
-        if self.tokens.contains_right(&name) {
-            return Err(Error::NameAlreadyRegistered(name));
+        if let State::Waiting(_) = self.state.get_mut() {
+            if self.tokens.contains_right(&name) {
+                return Err(Error::NameAlreadyRegistered(name));
+            }
+            let token: Token = random();
+            self.tokens.insert(token, name);
+            Ok(token)
+        } else {
+            Err(Error::GameAlreadyStarted)
         }
-        let token: Token = random();
-        self.tokens.insert(token, name);
-        Ok(token)
     }
     /// トークンからパーミッションを得る
     /// # Example

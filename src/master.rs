@@ -36,7 +36,7 @@ pub enum Error {
 #[derive(Error, Debug)]
 pub enum ConfigError {
     /// role_countsに記載された人数とメンバー数が一致しません。
-    #[ error("The number of members does not match the number of people listed in role_counts.") ]
+    #[error("The number of members does not match the number of people listed in role_counts.")]
     InvalidRoleCounts(Config),
 }
 
@@ -151,7 +151,6 @@ impl Master {
                 count: 0,
                 role,
                 waiting: survivors.clone(),
-                next_survivors: survivors.clone(),
                 survivors,
             });
             Ok(())

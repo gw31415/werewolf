@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use serde::Serialize;
-use strum::{EnumIter, IntoEnumIterator, AsRefStr};
+use strum::{AsRefStr, EnumIter, IntoEnumIterator};
 use thiserror::Error;
 
 use crate::state::Name;
@@ -20,10 +20,12 @@ pub enum Role {
     /// 市民
     Citizen,
     /// 人狼
-    Wolf,
+    Wolf { killing: Option<Name> },
     /// 占い師
     /// HashMapの値は黒(人狼サイド)のときにtrue
-    Seer(HashMap<Name, bool>),
+    Seer { prediction: HashMap<Name, Team> },
+    /// 狩人
+    Hunter { saving: Option<Name> },
 }
 
 impl TryFrom<&str> for Role {
@@ -31,7 +33,7 @@ impl TryFrom<&str> for Role {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         for role in Role::iter() {
             if role.as_ref() == value {
-                return Ok(role)
+                return Ok(role);
             }
         }
         Err(Error::UnknownRole(value.into()))
@@ -42,8 +44,8 @@ impl Role {
     /// チームを返す。
     pub fn team(&self) -> Team {
         match self {
-            Self::Citizen | Self::Seer(_) => Team::Citizen,
-            Self::Wolf => Team::Wolf,
+            Self::Citizen | Self::Seer { .. } | Self::Hunter { .. } => Team::Citizen,
+            Self::Wolf { .. } => Team::Wolf,
         }
     }
 }

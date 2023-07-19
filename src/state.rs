@@ -22,9 +22,6 @@ pub enum State {
         waiting: HashSet<Name>,
         /// 生存している人
         survivors: HashSet<Name>,
-
-        /// 次の昼の生存者
-        next_survivors: HashSet<Name>,
     },
     /// 夜
     Day {

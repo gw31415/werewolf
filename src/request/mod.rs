@@ -1,7 +1,10 @@
 mod error;
 
 use super::{Name, State};
-use crate::{master::Config, role::Role};
+use crate::{
+    master::Config,
+    role::{Role, Team},
+};
 pub use error::Error;
 
 use serde::{Deserialize, Serialize};
@@ -96,12 +99,11 @@ impl Request<'_> for Kill {
                 role,
                 waiting,
                 survivors,
-                next_survivors,
                 ..
             },
             state
         );
-        assert_role!(Role::Wolf, role.get(name).unwrap());
+        assert_role!(Role::Wolf { ref mut killing }, role.get_mut(name).unwrap());
         if !waiting.contains(name) {
             return Err(Error::MultipleActions);
         }
@@ -111,7 +113,7 @@ impl Request<'_> for Kill {
         if !survivors.contains(&self.target) {
             return Err(Error::InvalidTarget(self.target));
         }
-        next_survivors.remove(&self.target);
+        *killing = Some(self.target);
         Ok(())
     }
 }
@@ -134,15 +136,55 @@ impl Request<'_> for Divine {
             },
             state
         );
-        let target_is_wolf = matches!(role.get(&self.target).unwrap(), Role::Wolf);
-        assert_role!(Role::Seer(prediction), role.get_mut(name).unwrap());
+        let target_is_wolf = matches!(role.get(&self.target).unwrap(), Role::Wolf { .. });
+        assert_role!(Role::Seer { prediction }, role.get_mut(name).unwrap());
         if !waiting.contains(name) {
             return Err(Error::MultipleActions);
         }
         if !survivors.contains(name) {
             return Err(Error::SurvivorsOnly);
         }
-        prediction.insert(self.target, target_is_wolf);
+        prediction.insert(
+            self.target,
+            if target_is_wolf {
+                Team::Wolf
+            } else {
+                Team::Citizen
+            },
+        );
+        Ok(())
+    }
+}
+
+/// 夜に住民を防護する
+#[derive(Serialize, Deserialize)]
+pub struct Save {
+    /// 防護先
+    pub target: Name,
+}
+
+impl Request<'_> for Save {
+    fn modify(self, name: &Name, state: &mut State, _: &Config) -> Result<(), Error> {
+        assert_state!(
+            State::Night {
+                role,
+                waiting,
+                survivors,
+                ..
+            },
+            state
+        );
+        assert_role!(Role::Hunter { ref mut saving }, role.get_mut(name).unwrap());
+        if !waiting.contains(name) {
+            return Err(Error::MultipleActions);
+        }
+        if !survivors.contains(name) {
+            return Err(Error::SurvivorsOnly);
+        }
+        if !survivors.contains(&self.target) {
+            return Err(Error::InvalidTarget(self.target));
+        }
+        *saving = Some(self.target);
         Ok(())
     }
 }

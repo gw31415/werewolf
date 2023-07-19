@@ -114,6 +114,7 @@ impl Request<'_> for Kill {
             return Err(Error::InvalidTarget(self.target));
         }
         *killing = Some(self.target);
+        waiting.remove(name);
         Ok(())
     }
 }
@@ -152,6 +153,7 @@ impl Request<'_> for Divine {
                 Team::Citizen
             },
         );
+        waiting.remove(name);
         Ok(())
     }
 }
@@ -185,6 +187,7 @@ impl Request<'_> for Save {
             return Err(Error::InvalidTarget(self.target));
         }
         *saving = Some(self.target);
+        waiting.remove(name);
         Ok(())
     }
 }

@@ -54,9 +54,19 @@ pub struct Master {
 }
 
 /// ゲーム設定
-#[derive(Serialize, Deserialize, Default, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Config {
     pub role_counts: HashMap<String, usize>,
+    pub skippable_roles: HashSet<String>,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            role_counts: HashMap::new(),
+            skippable_roles: HashSet::from([String::from("citizen")]),
+        }
+    }
 }
 
 impl Default for Master {

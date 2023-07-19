@@ -28,9 +28,9 @@ pub type Token = [u8; 32];
 pub struct Master {
     /// トークンから表示名への辞書
     tokens: BiHashMap<Token, Name>,
-    /// ゲーム設定。ゲーム開始から変更されないデータ全般
+    /// ゲーム設定。ゲームのルールが主。
     config: Config,
-    /// 状態。ゲームの進行と共に変化していくデータ全般
+    /// 状態。場面とそれに依存するデータ。
     state: Cell<State>,
 }
 

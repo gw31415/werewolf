@@ -56,7 +56,7 @@ pub struct Master {
 /// ゲーム設定
 #[derive(Serialize, Deserialize, Default, Clone, Debug)]
 pub struct Config {
-    role_counts: HashMap<String, usize>,
+    pub role_counts: HashMap<String, usize>,
 }
 
 impl Default for Master {

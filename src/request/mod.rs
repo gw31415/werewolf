@@ -191,3 +191,38 @@ impl Request<'_> for Save {
         Ok(())
     }
 }
+
+/// 夜の行動をスキップする
+#[derive(Serialize, Deserialize)]
+pub struct Skip();
+
+impl Request<'_> for Skip {
+    fn modify(self, name: &Name, state: &mut State, config: &Config) -> Result<(), Error> {
+        assert_state!(
+            State::Night {
+                role,
+                waiting,
+                survivors,
+                ..
+            },
+            state
+        );
+        {
+            let role = role.get(name).unwrap();
+            if !config.skippable_roles.contains(role.as_ref()) {
+                return Err(Error::InvalidRole {
+                    found: Box::new(role.to_owned()),
+                    expected: stringify!(!config.skippable_roles).to_owned(),
+                });
+            }
+        }
+        if !survivors.contains(name) {
+            return Err(Error::SurvivorsOnly);
+        }
+        if !waiting.contains(name) {
+            return Err(Error::MultipleActions);
+        }
+        waiting.remove(name);
+        Ok(())
+    }
+}

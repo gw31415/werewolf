@@ -1,11 +1,21 @@
 use std::collections::HashMap;
 
 use serde::Serialize;
+use strum::{EnumIter, IntoEnumIterator, AsRefStr};
+use thiserror::Error;
 
 use crate::state::Name;
 
+/// 認証周辺のエラー
+#[derive(Error, Debug)]
+pub enum Error {
+    /// 指定された名前のロールが存在していない場合。
+    #[error("Cannot find role named {0}.")]
+    UnknownRole(String),
+}
+
 /// 役職
-#[derive(Serialize, PartialEq, Eq, Clone, Debug)]
+#[derive(Serialize, PartialEq, Eq, Clone, Debug, EnumIter, AsRefStr)]
 pub enum Role {
     /// 市民
     Citizen,
@@ -14,6 +24,18 @@ pub enum Role {
     /// 占い師
     /// HashMapの値は黒(人狼サイド)のときにtrue
     Seer(HashMap<Name, bool>),
+}
+
+impl TryFrom<&str> for Role {
+    type Error = Error;
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        for role in Role::iter() {
+            if role.as_ref() == value {
+                return Ok(role)
+            }
+        }
+        Err(Error::UnknownRole(value.into()))
+    }
 }
 
 impl Role {

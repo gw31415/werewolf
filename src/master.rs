@@ -1,13 +1,18 @@
-use std::cell::Cell;
+use std::{
+    cell::Cell,
+    collections::{HashMap, HashSet},
+};
+
+use crate::role::{Error as RoleError, Role};
 
 use super::{Name, Permission, State};
 
 use bimap::BiHashMap;
-use rand::random;
+use rand::{random, seq::SliceRandom};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-/// 認証周辺のエラー
+/// マスター関連のエラー
 #[derive(Error, Debug)]
 pub enum Error {
     /// 登録時のユーザー名が被る場合
@@ -19,6 +24,20 @@ pub enum Error {
     /// ゲームが既に始まっていた場合
     #[error("game has already started.")]
     GameAlreadyStarted,
+    /// 役割処理の際のエラー
+    #[error("RoleError: {0}")]
+    Role(#[from] RoleError),
+    /// 設定のエラー
+    #[error("ConfigError: {0}")]
+    Config(#[from] ConfigError),
+}
+
+/// 設定関連のエラー
+#[derive(Error, Debug)]
+pub enum ConfigError {
+    /// role_countsに記載された人数とメンバー数が一致しません。
+    #[ error("The number of members does not match the number of people listed in role_counts.") ]
+    InvalidRoleCounts(Config),
 }
 
 /// トークン
@@ -36,7 +55,9 @@ pub struct Master {
 
 /// ゲーム設定
 #[derive(Serialize, Deserialize, Default, Clone, Debug)]
-pub struct Config {}
+pub struct Config {
+    role_counts: HashMap<String, usize>,
+}
 
 impl Default for Master {
     fn default() -> Self {
@@ -92,6 +113,50 @@ impl Master {
         let Some(name) = tokens.get_by_left(token) else {
             return  Err(Error::AuthenticationFailed);
         };
-        Ok(Permission { name, state, config })
+        Ok(Permission {
+            name,
+            state,
+            config,
+        })
+    }
+
+    /// 開始していないゲームをスタートする。
+    /// # Example
+    /// ```
+    /// use werewolf::master::{Master, Error::GameAlreadyStarted};
+    /// let mut master = Master::new();
+    /// assert!(matches!(master.start(), Ok(())));
+    /// assert!(matches!(master.start(), Err(GameAlreadyStarted)));
+    /// ```
+    pub fn start(&mut self) -> Result<(), Error> {
+        if let State::Waiting(_) = self.state.get_mut() {
+            let survivors = HashSet::from_iter(self.tokens.right_values().map(|a| a.to_owned()));
+            let role = {
+                let mut all_roles = self
+                    .config
+                    .role_counts
+                    .iter()
+                    .flat_map(|(role, count)| std::iter::repeat(role).take(*count))
+                    .map(|name| Role::try_from(name as &str))
+                    .collect::<Result<Vec<Role>, RoleError>>()?;
+                if all_roles.len() != survivors.len() {
+                    return Err(ConfigError::InvalidRoleCounts(self.config.clone()).into());
+                }
+                all_roles.shuffle(&mut rand::thread_rng());
+                survivors.clone().into_iter().zip(all_roles).collect()
+            };
+
+            // stateの初期化。
+            self.state = Cell::new(State::Night {
+                count: 0,
+                role,
+                waiting: survivors.clone(),
+                next_survivors: survivors.clone(),
+                survivors,
+            });
+            Ok(())
+        } else {
+            Err(Error::GameAlreadyStarted)
+        }
     }
 }

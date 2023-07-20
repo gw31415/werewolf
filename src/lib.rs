@@ -88,7 +88,10 @@ impl<'master> Permission<'master> {
                             })
                             .collect()
                     };
+
                     if candidates.len() == 1 {
+                        // 候補者が一人に定まった場合
+
                         // 追放
                         survivors.remove(&candidates.iter().next().unwrap().to_owned());
 

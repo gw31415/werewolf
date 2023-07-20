@@ -23,7 +23,7 @@ pub enum State {
         /// 生存している人
         survivors: HashSet<Name>,
     },
-    /// 夜
+    /// 昼
     Day {
         /// 何周目であるか
         count: usize,

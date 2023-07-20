@@ -75,6 +75,15 @@ impl Default for Master {
     }
 }
 
+impl From<Config> for Master {
+    fn from(config: Config) -> Self {
+        Master {
+            config,
+            ..Default::default()
+        }
+    }
+}
+
 impl Master {
     /// ユーザー待機状態のゲームマスターのインスタンスを返す。
     pub fn new() -> Self {

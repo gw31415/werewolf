@@ -171,4 +171,56 @@ impl<'master> Permission<'master> {
         }
         Ok(())
     }
+
+    /// パーミッション元ユーザの名前を返す。
+    pub fn name(&self) -> &Name {
+        self.name
+    }
+
+    /// Stateをクローンし、そのユーザーが閲覧できる範囲にフィルターして返す
+    pub fn view_state(&self) -> State {
+        let state = unsafe { (*self.state.as_ptr()).clone() };
+        use State::*;
+        match state {
+            Waiting(_) | End(_) => state,
+            Day {
+                count,
+                mut role,
+                waiting,
+                survivors,
+                votes,
+                candidates,
+            } => {
+
+                // 自分のロールのみにフィルターする
+                role = role.drain().filter(|(k, _)| k == self.name).collect();
+
+                Day {
+                    count,
+                    role,
+                    waiting,
+                    survivors,
+                    votes,
+                    candidates,
+                }
+            }
+            Night {
+                count,
+                mut role,
+                waiting,
+                survivors,
+            } => {
+
+                // 自分のロールのみにフィルターする
+                role = role.drain().filter(|(k, _)| k == self.name).collect();
+
+                Night {
+                    count,
+                    role,
+                    waiting,
+                    survivors,
+                }
+            }
+        }
+    }
 }

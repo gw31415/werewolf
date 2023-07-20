@@ -3,12 +3,15 @@ use crate::{
     role::{Role, Team},
 };
 
+use serde::Serialize;
 use std::collections::{HashMap, HashSet};
 
 pub type Name = String;
 
 /// フェーズ
-#[derive(Debug, Clone)]
+// unsafeでCell内のクローンを行うためメンバに注意。
+// ArcやRcなど禁止。
+#[derive(Serialize, Clone, Debug)]
 pub enum State {
     /// メンバー募集中
     Waiting(Config),

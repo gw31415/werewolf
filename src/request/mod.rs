@@ -110,7 +110,7 @@ impl Request<'_> for Kill {
         if !survivors.contains(name) {
             return Err(Error::SurvivorsOnly);
         }
-        if !survivors.contains(&self.target) {
+        if !survivors.contains(&self.target) || name == &self.target {
             return Err(Error::InvalidTarget(self.target));
         }
         *killing = Some(self.target);
@@ -183,7 +183,7 @@ impl Request<'_> for Save {
         if !survivors.contains(name) {
             return Err(Error::SurvivorsOnly);
         }
-        if !survivors.contains(&self.target) {
+        if !survivors.contains(&self.target) || name == &self.target {
             return Err(Error::InvalidTarget(self.target));
         }
         *saving = Some(self.target);

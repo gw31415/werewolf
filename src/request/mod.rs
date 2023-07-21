@@ -222,6 +222,14 @@ impl Request<'_> for Skip {
         if !waiting.contains(name) {
             return Err(Error::MultipleActions);
         }
+        {
+            use Role::*;
+            if let Wolf { killing: target } | Hunter { saving: target } =
+                role.get_mut(name).unwrap()
+            {
+                *target = None;
+            }
+        }
         waiting.remove(name);
         Ok(())
     }

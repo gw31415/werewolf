@@ -166,7 +166,7 @@ pub struct Guard {
 }
 
 impl Request<'_> for Guard {
-    fn modify(self, name: &Name, state: &mut State, _: &Config) -> Result<(), Error> {
+    fn modify(self, name: &Name, state: &mut State, config: &Config) -> Result<(), Error> {
         assert_state!(
             State::Night {
                 role,
@@ -185,6 +185,13 @@ impl Request<'_> for Guard {
         }
         if !survivors.contains(&self.target) || name == &self.target {
             return Err(Error::InvalidTarget(self.target));
+        }
+        if config.hunter.consecutive_guard {
+            if let Some(guarding) = guarding {
+                if guarding == &self.target {
+                    return Err(Error::InvalidTarget(self.target));
+                }
+            }
         }
         *guarding = Some(self.target);
         waiting.remove(name);

@@ -133,7 +133,9 @@ impl<'master> Permission<'master> {
                         for name in survivors.iter() {
                             use role::Role::{Hunter, Wolf};
                             match role.get(name) {
-                                Some(Hunter { guarding: Some(guard) }) => {
+                                Some(Hunter {
+                                    guarding: Some(guard),
+                                }) => {
                                     guardings.push(guard);
                                 }
                                 Some(Wolf {

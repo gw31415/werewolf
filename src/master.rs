@@ -65,6 +65,8 @@ pub struct HunterConfig {
     pub count: usize,
     /// スキップできるかどうか
     pub skippable: bool,
+    /// 連続して同じ人を守れるかどうか
+    pub consecutive_guard: bool,
 }
 
 /// 人狼の設定

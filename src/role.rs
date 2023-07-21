@@ -18,17 +18,13 @@ pub enum Error {
 #[derive(Serialize, PartialEq, Eq, Clone, Debug, EnumIter)]
 pub enum Role {
     /// 市民
-    #[strum(serialize = "citizen")]
     Citizen,
     /// 人狼
-    #[strum(serialize = "wolf")]
     Wolf { killing: Option<Name> },
     /// 占い師
     /// HashMapの値は黒(人狼サイド)のときにtrue
-    #[strum(serialize = "seer")]
     Seer { prediction: HashMap<Name, Team> },
     /// 狩人
-    #[strum(serialize = "hunter")]
     Hunter { saving: Option<Name> },
 }
 

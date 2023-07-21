@@ -1,12 +1,14 @@
-use std::{cell::Cell, collections::HashSet};
-
-use crate::role::{Error as RoleError, Role};
+pub mod config;
+pub use config::Config;
 
 use super::{Name, Permission, State};
+use crate::role::{Error as RoleError, Role};
 
 use bimap::BiHashMap;
+use config::Error as ConfigError;
 use rand::{random, seq::SliceRandom};
 use serde::{Deserialize, Serialize};
+use std::{cell::Cell, collections::HashSet};
 use strum::IntoEnumIterator;
 use thiserror::Error;
 
@@ -29,15 +31,6 @@ pub enum Error {
     #[error("ConfigError: {0}")]
     Config(#[from] ConfigError),
 }
-
-/// 設定関連のエラー
-#[derive(Error, Debug)]
-pub enum ConfigError {
-    /// role_countsに記載された人数とメンバー数が一致しません。
-    #[error("The number of members does not match the number of people listed in role_counts.")]
-    InvalidRoleCounts(Config),
-}
-
 /// トークン
 pub type Token = [u8; 32];
 
@@ -87,31 +80,9 @@ pub struct SeerConfig {
     pub skippable: bool,
 }
 
-/// ゲーム設定
-#[derive(Default, Debug, Serialize, Clone, Deserialize)]
-pub struct Config {
-    pub citizen: CitizenConfig,
-    pub hunter: HunterConfig,
-    pub seer: SeerConfig,
-    pub wolf: WolfConfig,
-}
-
 impl Default for Master {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-impl Config {
-    // 与えられたロールがスキップ可能かどうか。
-    pub fn skippable(&self, role: &Role) -> bool {
-        use Role::*;
-        match role {
-            Citizen => true,
-            Wolf { .. } => self.wolf.skippable,
-            Seer { .. } => self.seer.skippable,
-            Hunter { .. } => self.hunter.skippable,
-        }
     }
 }
 

@@ -7,7 +7,6 @@ use crate::role::{Error as RoleError, Role};
 use bimap::BiHashMap;
 use config::Error as ConfigError;
 use rand::{random, seq::SliceRandom};
-use serde::{Deserialize, Serialize};
 use std::{cell::Cell, collections::HashSet};
 use strum::IntoEnumIterator;
 use thiserror::Error;
@@ -42,42 +41,6 @@ pub struct Master {
     config: Config,
     /// 状態。場面とそれに依存するデータ。
     state: Cell<State>,
-}
-
-/// 市民の設定
-#[derive(Default, Debug, Serialize, Clone, Deserialize)]
-pub struct CitizenConfig {
-    /// 人数
-    pub count: usize,
-}
-
-/// 狩人の設定
-#[derive(Default, Debug, Serialize, Clone, Deserialize)]
-pub struct HunterConfig {
-    /// 人数
-    pub count: usize,
-    /// スキップできるかどうか
-    pub skippable: bool,
-    /// 連続して同じ人を守れるかどうか
-    pub consecutive_guard: bool,
-}
-
-/// 人狼の設定
-#[derive(Default, Debug, Serialize, Clone, Deserialize)]
-pub struct WolfConfig {
-    /// 人数
-    pub count: usize,
-    /// スキップできるかどうか
-    pub skippable: bool,
-}
-
-/// 占い師の設定
-#[derive(Default, Debug, Serialize, Clone, Deserialize)]
-pub struct SeerConfig {
-    /// 人数
-    pub count: usize,
-    /// スキップできるかどうか
-    pub skippable: bool,
 }
 
 impl Default for Master {

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use serde::Serialize;
-use strum::{AsRefStr, EnumIter, IntoEnumIterator};
+use strum::EnumIter;
 use thiserror::Error;
 
 use crate::state::Name;
@@ -15,7 +15,7 @@ pub enum Error {
 }
 
 /// 役職
-#[derive(Serialize, PartialEq, Eq, Clone, Debug, EnumIter, AsRefStr)]
+#[derive(Serialize, PartialEq, Eq, Clone, Debug, EnumIter)]
 pub enum Role {
     /// 市民
     #[strum(serialize = "citizen")]
@@ -30,18 +30,6 @@ pub enum Role {
     /// 狩人
     #[strum(serialize = "hunter")]
     Hunter { saving: Option<Name> },
-}
-
-impl TryFrom<&str> for Role {
-    type Error = Error;
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        for role in Role::iter() {
-            if role.as_ref() == value {
-                return Ok(role);
-            }
-        }
-        Err(Error::UnknownRole(value.into()))
-    }
 }
 
 impl Role {

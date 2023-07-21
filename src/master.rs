@@ -1,7 +1,4 @@
-use std::{
-    cell::Cell,
-    collections::{HashMap, HashSet},
-};
+use std::{cell::Cell, collections::HashSet};
 
 use crate::role::{Error as RoleError, Role};
 
@@ -10,6 +7,7 @@ use super::{Name, Permission, State};
 use bimap::BiHashMap;
 use rand::{random, seq::SliceRandom};
 use serde::{Deserialize, Serialize};
+use strum::IntoEnumIterator;
 use thiserror::Error;
 
 /// マスター関連のエラー
@@ -53,25 +51,65 @@ pub struct Master {
     state: Cell<State>,
 }
 
-/// ゲーム設定
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct Config {
-    pub role_counts: HashMap<String, usize>,
-    pub skippable_roles: HashSet<String>,
+/// 市民の設定
+#[derive(Default, Debug, Serialize, Clone, Deserialize)]
+pub struct CitizenConfig {
+    /// 人数
+    pub count: usize,
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Config {
-            role_counts: HashMap::new(),
-            skippable_roles: HashSet::from([String::from("citizen")]),
-        }
-    }
+/// 狩人の設定
+#[derive(Default, Debug, Serialize, Clone, Deserialize)]
+pub struct HunterConfig {
+    /// 人数
+    pub count: usize,
+    /// スキップできるかどうか
+    pub skippable: bool,
+}
+
+/// 人狼の設定
+#[derive(Default, Debug, Serialize, Clone, Deserialize)]
+pub struct WolfConfig {
+    /// 人数
+    pub count: usize,
+    /// スキップできるかどうか
+    pub skippable: bool,
+}
+
+/// 占い師の設定
+#[derive(Default, Debug, Serialize, Clone, Deserialize)]
+pub struct SeerConfig {
+    /// 人数
+    pub count: usize,
+    /// スキップできるかどうか
+    pub skippable: bool,
+}
+
+/// ゲーム設定
+#[derive(Default, Debug, Serialize, Clone, Deserialize)]
+pub struct Config {
+    pub citizen: CitizenConfig,
+    pub hunter: HunterConfig,
+    pub seer: SeerConfig,
+    pub wolf: WolfConfig,
 }
 
 impl Default for Master {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl Config {
+    // 与えられたロールがスキップ可能かどうか。
+    pub fn skippable(&self, role: &Role) -> bool {
+        use Role::*;
+        match role {
+            Citizen => true,
+            Wolf { .. } => self.wolf.skippable,
+            Seer { .. } => self.seer.skippable,
+            Hunter { .. } => self.hunter.skippable,
+        }
     }
 }
 
@@ -151,13 +189,17 @@ impl Master {
         if let State::Waiting(_) = self.state.get_mut() {
             let survivors = HashSet::from_iter(self.tokens.right_values().map(|a| a.to_owned()));
             let role = {
-                let mut all_roles = self
-                    .config
-                    .role_counts
-                    .iter()
-                    .flat_map(|(role, count)| std::iter::repeat(role).take(*count))
-                    .map(|name| Role::try_from(name as &str))
-                    .collect::<Result<Vec<Role>, RoleError>>()?;
+                let mut all_roles = Role::iter()
+                    .flat_map(|role| {
+                        let count: usize = match &role {
+                            Role::Citizen => self.config.citizen.count,
+                            Role::Hunter { .. } => self.config.hunter.count,
+                            Role::Wolf { .. } => self.config.wolf.count,
+                            Role::Seer { .. } => self.config.seer.count,
+                        };
+                        std::iter::repeat(role).take(count)
+                    })
+                    .collect::<Vec<Role>>();
                 if all_roles.len() != survivors.len() {
                     return Err(ConfigError::InvalidRoleCounts(self.config.clone()).into());
                 }

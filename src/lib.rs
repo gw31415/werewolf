@@ -191,7 +191,6 @@ impl<'master> Permission<'master> {
                 votes,
                 candidates,
             } => {
-
                 // 自分のロールのみにフィルターする
                 role = role.drain().filter(|(k, _)| k == self.name).collect();
 
@@ -210,7 +209,6 @@ impl<'master> Permission<'master> {
                 waiting,
                 survivors,
             } => {
-
                 // 自分のロールのみにフィルターする
                 role = role.drain().filter(|(k, _)| k == self.name).collect();
 

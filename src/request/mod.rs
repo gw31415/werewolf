@@ -209,7 +209,7 @@ impl Request<'_> for Skip {
         );
         {
             let role = role.get(name).unwrap();
-            if !config.skippable_roles.contains(role.as_ref()) {
+            if !config.skippable(role) {
                 return Err(Error::InvalidRole {
                     found: Box::new(role.to_owned()),
                     expected: stringify!(!config.skippable_roles).to_owned(),

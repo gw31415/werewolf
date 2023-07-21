@@ -25,7 +25,7 @@ pub enum Role {
     /// HashMapの値は黒(人狼サイド)のときにtrue
     Seer { prediction: HashMap<Name, Team> },
     /// 狩人
-    Hunter { saving: Option<Name> },
+    Hunter { guarding: Option<Name> },
 }
 
 impl Role {

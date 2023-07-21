@@ -160,12 +160,12 @@ impl Request<'_> for Divine {
 
 /// 夜に住民を防護する
 #[derive(Serialize, Deserialize)]
-pub struct Save {
+pub struct Guard {
     /// 防護先
     pub target: Name,
 }
 
-impl Request<'_> for Save {
+impl Request<'_> for Guard {
     fn modify(self, name: &Name, state: &mut State, _: &Config) -> Result<(), Error> {
         assert_state!(
             State::Night {
@@ -176,7 +176,7 @@ impl Request<'_> for Save {
             },
             state
         );
-        assert_role!(Role::Hunter { ref mut saving }, role.get_mut(name).unwrap());
+        assert_role!(Role::Hunter { ref mut guarding }, role.get_mut(name).unwrap());
         if !waiting.contains(name) {
             return Err(Error::MultipleActions);
         }
@@ -186,7 +186,7 @@ impl Request<'_> for Save {
         if !survivors.contains(&self.target) || name == &self.target {
             return Err(Error::InvalidTarget(self.target));
         }
-        *saving = Some(self.target);
+        *guarding = Some(self.target);
         waiting.remove(name);
         Ok(())
     }
@@ -224,7 +224,7 @@ impl Request<'_> for Skip {
         }
         {
             use Role::*;
-            if let Wolf { killing: target } | Hunter { saving: target } =
+            if let Wolf { killing: target } | Hunter { guarding: target } =
                 role.get_mut(name).unwrap()
             {
                 *target = None;

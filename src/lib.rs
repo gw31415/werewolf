@@ -129,12 +129,12 @@ impl<'master> Permission<'master> {
                 if waiting.is_empty() {
                     {
                         // 殺害
-                        let (mut saves, mut targets) = (Vec::new(), Vec::new());
+                        let (mut guardings, mut targets) = (Vec::new(), Vec::new());
                         for name in survivors.iter() {
                             use role::Role::{Hunter, Wolf};
                             match role.get(name) {
-                                Some(Hunter { saving: Some(save) }) => {
-                                    saves.push(save);
+                                Some(Hunter { guarding: Some(guard) }) => {
+                                    guardings.push(guard);
                                 }
                                 Some(Wolf {
                                     killing: Some(kill),
@@ -145,7 +145,7 @@ impl<'master> Permission<'master> {
                             }
                         }
                         for kill in targets {
-                            if !saves.contains(&kill) {
+                            if !guardings.contains(&kill) {
                                 // 守られていない人
                                 survivors.remove(kill);
                             }

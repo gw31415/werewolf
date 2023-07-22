@@ -14,7 +14,10 @@ pub type Name = String;
 #[derive(Serialize, Clone, Debug)]
 pub enum State {
     /// メンバー募集中
-    Waiting { config: Config },
+    Waiting {
+        /// 設定
+        config: Config,
+    },
     /// 夜
     Night {
         /// 何周目であるか
@@ -43,7 +46,10 @@ pub enum State {
         candidates: HashSet<Name>,
     },
     /// 終了
-    End { winner: Team },
+    End {
+        /// 勝利したチーム
+        winner: Team,
+    },
 }
 
 impl Default for State {

@@ -160,4 +160,9 @@ impl Master {
     pub fn players(&self) -> HashSet<&Name> {
         self.tokens.right_values().collect()
     }
+
+    /// ゲーム設定の参照を得る
+    pub fn config(&self) -> &Config {
+        &self.config
+    }
 }

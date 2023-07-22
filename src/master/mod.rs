@@ -155,4 +155,9 @@ impl Master {
             Err(Error::GameAlreadyStarted)
         }
     }
+
+    /// マスターに参加中の全てのプレイヤー名の一覧を取得する
+    pub fn players(&self) -> HashSet<&Name> {
+        self.tokens.right_values().collect()
+    }
 }

@@ -45,7 +45,7 @@ pub struct UpdateConfig {
 
 impl Request<'_> for UpdateConfig {
     fn modify(self, _: &Name, state: &mut State, _: &Config) -> Result<(), Error> {
-        assert_state!(State::Waiting(ref mut config), state);
+        assert_state!(State::Waiting{ ref mut config }, state);
         *config = self.config;
         Ok(())
     }

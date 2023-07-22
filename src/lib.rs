@@ -46,17 +46,19 @@ impl<'master> Permission<'master> {
                 }
                 use role::Team::{Citizen, Wolf};
                 if wolves * 2 >= $survivors.len() {
-                    *state = State::End(Wolf).into();
+                    *state = State::End { winner: Wolf }.into();
                     return Ok(());
                 } else if wolves == 0 {
-                    *state = State::End(Citizen).into();
+                    *state = State::End { winner: Citizen }.into();
                     return Ok(());
                 }
             };
         }
 
         match state.get_mut().clone() {
-            State::Waiting(next_config) => {
+            State::Waiting {
+                config: next_config,
+            } => {
                 // 設定が変更されたら書きかえる
                 *config = next_config;
             }
@@ -169,7 +171,7 @@ impl<'master> Permission<'master> {
                     .into();
                 }
             }
-            State::End(_) => {}
+            State::End { .. } => {}
         }
         Ok(())
     }
@@ -184,7 +186,7 @@ impl<'master> Permission<'master> {
         let state = unsafe { (*self.state.as_ptr()).clone() };
         use State::*;
         match state {
-            Waiting(_) | End(_) => state,
+            Waiting { .. } | End { .. } => state,
             Day {
                 count,
                 mut role,

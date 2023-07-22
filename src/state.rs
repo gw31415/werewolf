@@ -14,7 +14,7 @@ pub type Name = String;
 #[derive(Serialize, Clone, Debug)]
 pub enum State {
     /// メンバー募集中
-    Waiting(Config),
+    Waiting { config: Config },
     /// 夜
     Night {
         /// 何周目であるか
@@ -43,11 +43,13 @@ pub enum State {
         candidates: HashSet<Name>,
     },
     /// 終了
-    End(Team),
+    End { winner: Team },
 }
 
 impl Default for State {
     fn default() -> Self {
-        Self::Waiting(Config::default())
+        Self::Waiting {
+            config: Config::default(),
+        }
     }
 }

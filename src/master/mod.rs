@@ -77,7 +77,7 @@ impl Master {
     /// assert!(matches!(master.signup("たろう".to_string()), Err(NameAlreadyRegistered(_))));
     /// ```
     pub fn signup(&mut self, name: Name) -> Result<Token, Error> {
-        if let State::Waiting(_) = self.state.get_mut() {
+        if let State::Waiting { .. } = self.state.get_mut() {
             if self.tokens.contains_right(&name) {
                 return Err(Error::NameAlreadyRegistered(name));
             }
@@ -122,7 +122,7 @@ impl Master {
     /// assert!(matches!(master.start(), Err(GameAlreadyStarted)));
     /// ```
     pub fn start(&mut self) -> Result<(), Error> {
-        if let State::Waiting(_) = self.state.get_mut() {
+        if let State::Waiting { .. } = self.state.get_mut() {
             let survivors = HashSet::from_iter(self.tokens.right_values().map(|a| a.to_owned()));
             let role = {
                 let mut all_roles = Role::iter()

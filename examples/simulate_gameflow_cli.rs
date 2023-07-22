@@ -46,7 +46,7 @@ fn main() -> Result<(), Error> {
         println!("-------------------------------------------");
 
         match user.view_state() {
-            End { winner: team } => {
+            End { winner: team, .. } => {
                 println!("Winner: {:?}", team);
                 break;
             }

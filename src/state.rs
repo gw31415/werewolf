@@ -47,6 +47,8 @@ pub enum State {
     },
     /// 終了
     End {
+        /// 役職
+        role: HashMap<Name, Role>,
         /// 勝利したチーム
         winner: Team,
     },

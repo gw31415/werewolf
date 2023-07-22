@@ -46,10 +46,18 @@ impl<'master> Permission<'master> {
                 }
                 use role::Team::{Citizen, Wolf};
                 if wolves * 2 >= $survivors.len() {
-                    *state = State::End { winner: Wolf }.into();
+                    *state = State::End {
+                        winner: Wolf,
+                        role: $role,
+                    }
+                    .into();
                     return Ok(());
                 } else if wolves == 0 {
-                    *state = State::End { winner: Citizen }.into();
+                    *state = State::End {
+                        winner: Citizen,
+                        role: $role,
+                    }
+                    .into();
                     return Ok(());
                 }
             };

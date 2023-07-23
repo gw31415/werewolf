@@ -3,18 +3,30 @@ pub mod request;
 pub mod role;
 pub mod state;
 
-mod error;
+use crate::master::Config;
+use crate::master::Error as AuthError;
+use crate::request::Error as RequestError;
+use crate::request::Request;
+use crate::state::{Name, State};
 
-pub use error::Error;
 pub use master::Master;
 
-use crate::state::{Name, State};
-use master::Config;
-use request::Request;
 use std::{
     cell::Cell,
     collections::{HashMap, HashSet},
 };
+use thiserror::Error;
+
+/// エラー一覧
+#[derive(Error, Debug)]
+pub enum Error {
+    /// 認証時のエラー
+    #[error("AuthError: {0}")]
+    Auth(#[from] AuthError),
+    /// リクエスト処理時のエラー
+    #[error("RequestFailed: {0}")]
+    RequestFailed(#[from] RequestError),
+}
 
 /// リクエストを処理する権限
 /// Permissionが作成されると、Permissionがドロップされるまで

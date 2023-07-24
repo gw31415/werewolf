@@ -1,5 +1,6 @@
 pub mod config;
 pub use config::Config;
+use serde::Serialize;
 
 use super::{Name, Permission, State};
 use crate::role::{Error as RoleError, Role};
@@ -12,7 +13,8 @@ use strum::IntoEnumIterator;
 use thiserror::Error;
 
 /// マスター関連のエラー
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum Error {
     /// 登録時のユーザー名が被る場合
     #[error("display name of `{0}` is already in use.")]

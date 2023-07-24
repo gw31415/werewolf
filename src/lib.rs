@@ -10,6 +10,7 @@ use crate::request::Request;
 use crate::state::{Name, State};
 
 pub use master::Master;
+use serde::Serialize;
 
 use std::{
     cell::Cell,
@@ -18,7 +19,8 @@ use std::{
 use thiserror::Error;
 
 /// エラー一覧
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum Error {
     /// 認証時のエラー
     #[error("AuthError: {0}")]

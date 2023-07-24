@@ -1,9 +1,11 @@
 use crate::{role::Role, state::State};
 
+use serde::Serialize;
 use thiserror::Error;
 
 /// リクエスト処理時のエラー
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum Error {
     /// 場面が適切でない場合
     #[error("invalid State (found {found:?}, expected pattern {expected:?})")]

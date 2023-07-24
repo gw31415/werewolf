@@ -7,7 +7,8 @@ use thiserror::Error;
 use crate::state::Name;
 
 /// 認証周辺のエラー
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum Error {
     /// 指定された名前のロールが存在していない場合。
     #[error("Cannot find role named {0}.")]

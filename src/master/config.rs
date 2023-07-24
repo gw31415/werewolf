@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 /// 設定関連のエラー
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum Error {
     /// role_countsに記載された人数とメンバー数が一致しません。
     #[error("The number of members does not match the number of people listed in role_counts.")]

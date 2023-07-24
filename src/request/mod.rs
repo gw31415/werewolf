@@ -9,6 +9,48 @@ pub use error::Error;
 
 use serde::{Deserialize, Serialize};
 
+macro_rules! _creator {
+    (
+        $(#[$meta:meta])*
+        pub enum $EnumName:ident {
+            $(
+                $name:ident,
+            )*
+        }
+    ) => {
+        $(#[$meta])*
+        pub enum $EnumName {
+            $(
+                $name($name),
+            )*
+        }
+
+        impl Request<'_> for $EnumName {
+            fn modify(self, name: &Name, state: &mut State, config: &Config) -> Result<(), Error> {
+                match self {
+                    $(
+                        $EnumName::$name(item) => item.modify(name, state, config),
+                    )*
+                }
+            }
+        }
+    };
+}
+
+_creator! {
+    /// リクエストのうちのいずれか
+    #[derive(Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub enum Any {
+        UpdateConfig,
+        Vote,
+        Kill,
+        Divine,
+        Guard,
+        Skip,
+    }
+}
+
 /// 状況の確認をする
 macro_rules! assert_state {
     ($expected: pat, $state: expr) => {

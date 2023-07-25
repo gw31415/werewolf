@@ -13,7 +13,7 @@ pub enum Error {
 }
 
 /// ゲーム設定
-#[derive(Default, Debug, Serialize, Clone, Deserialize)]
+#[derive(Default, Debug, Serialize, Clone, Deserialize, PartialEq, Eq)]
 pub struct Config {
     pub citizen: CitizenConfig,
     pub hunter: HunterConfig,
@@ -35,14 +35,14 @@ impl Config {
 }
 
 /// 市民の設定
-#[derive(Default, Debug, Serialize, Clone, Deserialize)]
+#[derive(Default, Debug, Serialize, Clone, Deserialize, PartialEq, Eq)]
 pub struct CitizenConfig {
     /// 人数
     pub count: usize,
 }
 
 /// 狩人の設定
-#[derive(Default, Debug, Serialize, Clone, Deserialize)]
+#[derive(Default, Debug, Serialize, Clone, Deserialize, PartialEq, Eq)]
 pub struct HunterConfig {
     /// 人数
     pub count: usize,
@@ -53,7 +53,7 @@ pub struct HunterConfig {
 }
 
 /// 人狼の設定
-#[derive(Default, Debug, Serialize, Clone, Deserialize)]
+#[derive(Default, Debug, Serialize, Clone, Deserialize, PartialEq, Eq)]
 pub struct WolfConfig {
     /// 人数
     pub count: usize,
@@ -62,7 +62,7 @@ pub struct WolfConfig {
 }
 
 /// 占い師の設定
-#[derive(Default, Debug, Serialize, Clone, Deserialize)]
+#[derive(Default, Debug, Serialize, Clone, Deserialize, PartialEq, Eq)]
 pub struct SeerConfig {
     /// 人数
     pub count: usize,

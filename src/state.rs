@@ -11,7 +11,7 @@ pub type Name = String;
 /// フェーズ
 // unsafeでCell内のクローンを行うためメンバに注意。
 // ArcやRcなど禁止。
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Clone, Debug, PartialEq, Eq)]
 pub enum State {
     /// メンバー募集中
     Waiting {

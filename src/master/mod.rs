@@ -167,4 +167,9 @@ impl Master {
     pub fn config(&self) -> &Config {
         &self.config
     }
+
+    /// トークンから名前を得る
+    pub fn get_name(&self, token: &Token) -> Option<&Name> {
+        self.tokens.get_by_left(token)
+    }
 }
